@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Members - AFB Mangaan Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/all.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo"><i class="ph ph-users-three"></i><span>AFB Mangaan</span></div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="demo-dashboard.html" class="nav-item"><i class="ph ph-squares-four"></i><span>Dashboard</span></a>
+                <a href="demo-attendance.html" class="nav-item"><i class="ph ph-check-circle"></i><span>Attendance</span></a>
+                <a href="demo-members.html" class="nav-item active"><i class="ph ph-users"></i><span>Members</span></a>
+                <a href="demo-events.html" class="nav-item"><i class="ph ph-calendar"></i><span>Events</span></a>
+                <a href="demo-reports.html" class="nav-item"><i class="ph ph-chart-bar"></i><span>Reports</span></a>
+                <a href="demo-settings.html" class="nav-item"><i class="ph ph-gear"></i><span>Settings</span></a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-nav">
+                <h2>Member Management</h2>
+                <div class="user-menu">
+                    <a href="index.html" class="btn btn-sm"><i class="ph ph-sign-out"></i> Exit Demo</a>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="toolbar animate__animated animate__fadeInDown">
+                    <div class="search-filter">
+                        <div class="search-box">
+                            <i class="ph ph-magnifying-glass"></i>
+                            <input type="text" placeholder="Search members...">
+                        </div>
+                        <select class="filter-select">
+                            <option>All Categories</option>
+                            <option>Youth</option>
+                            <option>Adult</option>
+                            <option>Senior</option>
+                            <option>Child</option>
+                        </select>
+                        <select class="filter-select">
+                            <option>All Status</option>
+                            <option>Active</option>
+                            <option>Archived</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary"><i class="ph ph-plus"></i> Add Member</button>
+                </div>
+
+                <div class="card animate__animated animate__fadeInUp">
+                    <div class="card-header">
+                        <h3><i class="ph ph-users"></i> Members (156)</h3>
+                        <button class="btn btn-secondary btn-sm"><i class="ph ph-download"></i> Export</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="members-grid">
+                            <div class="member-card">
+                                <div class="member-avatar">JD</div>
+                                <h4>Juan Dela Cruz</h4>
+                                <p><i class="ph ph-envelope"></i> juan@email.com</p>
+                                <p><i class="ph ph-phone"></i> 09123456789</p>
+                                <div class="member-badges">
+                                    <span class="badge badge-adult">Adult</span>
+                                    <span class="badge badge-active">Active</span>
+                                </div>
+                                <div class="member-actions">
+                                    <button class="btn-icon"><i class="ph ph-pencil"></i></button>
+                                    <button class="btn-icon"><i class="ph ph-qr-code"></i></button>
+                                </div>
+                            </div>
+                            <div class="member-card">
+                                <div class="member-avatar" style="background: #10b981;">MS</div>
+                                <h4>Maria Santos</h4>
+                                <p><i class="ph ph-envelope"></i> maria@email.com</p>
+                                <p><i class="ph ph-phone"></i> 09187654321</p>
+                                <div class="member-badges">
+                                    <span class="badge badge-youth">Youth</span>
+                                    <span class="badge badge-active">Active</span>
+                                </div>
+                                <div class="member-actions">
+                                    <button class="btn-icon"><i class="ph ph-pencil"></i></button>
+                                    <button class="btn-icon"><i class="ph ph-qr-code"></i></button>
+                                </div>
+                            </div>
+                            <div class="member-card">
+                                <div class="member-avatar" style="background: #f59e0b;">PP</div>
+                                <h4>Pedro Penduko</h4>
+                                <p><i class="ph ph-envelope"></i> pedro@email.com</p>
+                                <p><i class="ph ph-phone"></i> 09111222333</p>
+                                <div class="member-badges">
+                                    <span class="badge badge-senior">Senior</span>
+                                    <span class="badge badge-active">Active</span>
+                                </div>
+                                <div class="member-actions">
+                                    <button class="btn-icon"><i class="ph ph-pencil"></i></button>
+                                    <button class="btn-icon"><i class="ph ph-qr-code"></i></button>
+                                </div>
+                            </div>
+                            <div class="member-card">
+                                <div class="member-avatar" style="background: #ef4444;">AM</div>
+                                <h4>Ana Makiling</h4>
+                                <p><i class="ph ph-envelope"></i> ana@email.com</p>
+                                <p><i class="ph ph-phone"></i> 09444555666</p>
+                                <div class="member-badges">
+                                    <span class="badge badge-adult">Adult</span>
+                                    <span class="badge badge-active">Active</span>
+                                </div>
+                                <div class="member-actions">
+                                    <button class="btn-icon"><i class="ph ph-pencil"></i></button>
+                                    <button class="btn-icon"><i class="ph ph-qr-code"></i></button>
+                                </div>
+                            </div>
+                            <div class="member-card">
+                                <div class="member-avatar" style="background: #8b5cf6;">DS</div>
+                                <h4>Diego Silang</h4>
+                                <p><i class="ph ph-envelope"></i> diego@email.com</p>
+                                <p><i class="ph ph-phone"></i> 09777888999</p>
+                                <div class="member-badges">
+                                    <span class="badge badge-youth">Youth</span>
+                                    <span class="badge badge-active">Active</span>
+                                </div>
+                                <div class="member-actions">
+                                    <button class="btn-icon"><i class="ph ph-pencil"></i></button>
+                                    <button class="btn-icon"><i class="ph ph-qr-code"></i></button>
+                                </div>
+                            </div>
+                            <div class="member-card add-new">
+                                <i class="ph ph-plus-circle" style="font-size: 48px; color: #cbd5e1;"></i>
+                                <p>Add New Member</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: #f8fafc; }
+        .app-container { display: flex; min-height: 100vh; }
+        
+        .sidebar { width: 260px; background: white; border-right: 1px solid #e2e8f0; padding: 24px 16px; position: fixed; height: 100vh; }
+        .sidebar-header { margin-bottom: 32px; }
+        .logo { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 20px; color: #4f46e5; }
+        .logo i { font-size: 32px; }
+        
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; text-decoration: none; color: #64748b; margin-bottom: 4px; transition: all 0.2s; }
+        .nav-item:hover { background: #f1f5f9; color: #4f46e5; }
+        .nav-item.active { background: #4f46e5; color: white; }
+        
+        .main-content { flex: 1; margin-left: 260px; }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 32px; background: white; border-bottom: 1px solid #e2e8f0; }
+        .content-wrapper { padding: 32px; }
+        
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .search-filter { display: flex; gap: 12px; flex: 1; }
+        .search-box { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; flex: 1; max-width: 300px; }
+        .search-box input { border: none; outline: none; flex: 1; font-size: 14px; }
+        .filter-select { padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white; }
+        
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
+        .btn-sm { padding: 6px 12px; font-size: 13px; }
+        .btn-primary { background: #4f46e5; color: white; }
+        .btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+        
+        .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .card-header { padding: 20px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .card-header h3 { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
+        .card-body { padding: 24px; }
+        
+        .members-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+        .member-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; text-align: center; position: relative; }
+        .member-card.add-new { display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border-style: dashed; }
+        .member-avatar { width: 64px; height: 64px; background: #4f46e5; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 20px; margin: 0 auto 16px; }
+        .member-card h4 { font-size: 16px; margin-bottom: 12px; }
+        .member-card p { font-size: 13px; color: #64748b; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .member-badges { display: flex; gap: 8px; justify-content: center; margin: 16px 0; }
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .badge-adult { background: #dbeafe; color: #1d4ed8; }
+        .badge-youth { background: #e0e7ff; color: #4f46e5; }
+        .badge-senior { background: #fef3c7; color: #d97706; }
+        .badge-active { background: #d1fae5; color: #059669; }
+        .member-actions { display: flex; gap: 8px; justify-content: center; }
+        .btn-icon { background: #f1f5f9; border: none; padding: 8px; border-radius: 6px; cursor: pointer; color: #475569; }
+        .btn-icon:hover { background: #e2e8f0; }
+        
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; }
+            .toolbar { flex-direction: column; gap: 12px; align-items: stretch; }
+            .search-filter { flex-direction: column; }
+            .members-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</body>
+</html>

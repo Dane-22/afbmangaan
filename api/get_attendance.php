@@ -1,27 +1,36 @@
 <?php
 /**
- * API: Get Attendance
- * AFB Mangaan Attendance System
+ * API: Get Attendance Records
+ * Gets attendance records from the MySQL database
  */
 
 require_once __DIR__ . '/../functions/attendance_logic.php';
 
 header('Content-Type: application/json');
 
-$eventId = $_GET['event_id'] ?? null;
-
-if (!$eventId) {
-    echo json_encode(['success' => false, 'message' => 'Event ID required']);
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
     exit;
 }
 
-$attendance = getEventAttendance($eventId);
+try {
+    $event_id = $_GET['event_id'] ?? null;
 
-// Get stats
-$stats = getEventStats($eventId);
+    if (!$event_id) {
+        echo json_encode(['success' => false, 'message' => 'Event ID required']);
+        exit;
+    }
 
-echo json_encode([
-    'success' => true,
-    'attendance' => $attendance,
-    'stats' => $stats
-]);
+    $attendance = getEventAttendance($event_id);
+    $stats = getEventStats($event_id);
+
+    echo json_encode([
+        'success' => true,
+        'attendance' => $attendance,
+        'stats' => $stats
+    ]);
+
+} catch (Exception $e) {
+    error_log('Get attendance error: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Failed to get attendance']);
+}

@@ -10,11 +10,11 @@ require_once __DIR__ . '/activity_logger.php';
 /**
  * Login user and create session
  */
-function loginUser($username, $password) {
+function loginUser($username, $password, $church = 'AFB Mangaan') {
     $pdo = getDB();
     
-    $stmt = $pdo->prepare("SELECT id, username, fullname, role, status, password FROM users WHERE username = ? AND status = 'Active' LIMIT 1");
-    $stmt->execute([$username]);
+    $stmt = $pdo->prepare("SELECT id, username, fullname, role, status, password, church FROM users WHERE username = ? AND church = ? AND status = 'Active' LIMIT 1");
+    $stmt->execute([$username, $church]);
     $user = $stmt->fetch();
     
     if ($user && md5($password) === $user['password']) {
@@ -23,15 +23,16 @@ function loginUser($username, $password) {
         $_SESSION['username'] = $user['username'];
         $_SESSION['fullname'] = $user['fullname'];
         $_SESSION['role'] = $user['role'];
+        $_SESSION['church'] = $user['church'];
         $_SESSION['login_time'] = time();
         
         // Log the login
-        logActivity($user['id'], 'LOGIN', "User {$user['username']} logged in successfully");
+        logActivity($user['id'], 'LOGIN', "User {$user['username']} logged in successfully ({$user['church']})");
         
         return ['success' => true, 'user' => $user];
     }
     
-    return ['success' => false, 'message' => 'Invalid username or password'];
+    return ['success' => false, 'message' => 'Invalid username, password, or church'];
 }
 
 /**
@@ -78,8 +79,16 @@ function getCurrentUser() {
         'id' => $_SESSION['user_id'],
         'username' => $_SESSION['username'],
         'fullname' => $_SESSION['fullname'],
-        'role' => $_SESSION['role']
+        'role' => $_SESSION['role'],
+        'church' => $_SESSION['church'] ?? 'AFB Mangaan'
     ];
+}
+
+/**
+ * Get current church
+ */
+function getCurrentChurch() {
+    return $_SESSION['church'] ?? 'AFB Mangaan';
 }
 
 /**

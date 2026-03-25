@@ -5,7 +5,7 @@
  */
 ?>
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +14,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- CSS -->
     <link rel="stylesheet" href="assets/css/main.css">
@@ -52,8 +52,8 @@
                 
                 <div class="nav-right">
                     <!-- Theme Toggle -->
-                    <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
-                        <i class="ph ph-sun" id="themeIcon"></i>
+                    <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                        <i class="ph ph-moon" id="themeIcon"></i>
                     </button>
                     
                     <!-- User Dropdown -->
@@ -62,10 +62,18 @@
                             <div class="user-avatar">
                                 <i class="ph ph-user"></i>
                             </div>
-                            <span class="user-name"><?php echo htmlspecialchars($currentUser['fullname'] ?? 'User'); ?></span>
+                            <div style="text-align: left; line-height: 1.2;">
+                                <span class="user-name" style="font-size: 0.9rem;"><?php echo htmlspecialchars($currentUser['fullname'] ?? 'User'); ?></span>
+                                <br><small style="color: var(--text-muted); font-size: 0.7rem;"><?php echo htmlspecialchars($currentUser['church'] ?? 'AFB Mangaan'); ?></small>
+                            </div>
                             <i class="ph ph-caret-down"></i>
                         </button>
                         <div class="dropdown-menu" id="userDropdownMenu">
+                            <div class="dropdown-item" style="cursor: default; opacity: 0.7;">
+                                <i class="ph ph-buildings"></i>
+                                <span><?php echo htmlspecialchars($currentUser['church'] ?? 'AFB Mangaan'); ?></span>
+                            </div>
+                            <div class="dropdown-divider"></div>
                             <a href="settings.php" class="dropdown-item">
                                 <i class="ph ph-gear"></i>
                                 <span>Settings</span>

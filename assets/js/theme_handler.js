@@ -45,13 +45,13 @@
     function updateThemeIcon(theme) {
         const icon = document.getElementById('themeIcon');
         if (icon) {
-            icon.className = theme === 'light' ? 'ph ph-moon' : 'ph ph-sun';
+            icon.className = theme === 'dark' ? 'ph ph-moon' : 'ph ph-sun';
         }
     }
 
     // Get current theme
     function getCurrentTheme() {
-        return document.documentElement.getAttribute('data-theme') || 'light';
+        return document.documentElement.getAttribute('data-theme') || 'dark';
     }
 
     // Listen for system theme changes

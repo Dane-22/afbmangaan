@@ -162,7 +162,8 @@ $monthlyData = getMonthlyComparison(date('Y'));
             </div>
         </div>
         <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-            <div class="table-container">
+            <!-- Desktop Table View -->
+            <div class="table-container desktop-only">
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -179,15 +180,15 @@ $monthlyData = getMonthlyComparison(date('Y'));
                         foreach ($displayData as $row): 
                         ?>
                             <tr>
-                                <td><?php echo htmlspecialchars($row['fullname']); ?></td>
-                                <td><?php echo htmlspecialchars($row['event_name']); ?></td>
-                                <td><?php echo date('M d, Y', strtotime($row['event_date'])); ?></td>
-                                <td>
+                                <td data-label="Employee"><?php echo htmlspecialchars($row['fullname']); ?></td>
+                                <td data-label="Event"><?php echo htmlspecialchars($row['event_name']); ?></td>
+                                <td data-label="Date"><?php echo date('M d, Y', strtotime($row['event_date'])); ?></td>
+                                <td data-label="Status">
                                     <span class="badge badge-<?php echo $row['attendance_status'] === 'Present' ? 'success' : 'danger'; ?>">
                                         <?php echo $row['attendance_status'] ?? 'N/A'; ?>
                                     </span>
                                 </td>
-                                <td><?php echo $row['method'] ?? '-'; ?></td>
+                                <td data-label="Method"><?php echo $row['method'] ?? '-'; ?></td>
                             </tr>
                         <?php endforeach; ?>
                         <?php if (count($reportData) > 50): ?>
@@ -199,6 +200,45 @@ $monthlyData = getMonthlyComparison(date('Y'));
                         <?php endif; ?>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile Grid View -->
+            <div class="mobile-grid-view mobile-only" style="padding: 0.5rem;">
+                <?php 
+                $displayData = array_slice($reportData, 0, 50);
+                foreach ($displayData as $row): 
+                    $cardBorder = $row['attendance_status'] === 'Present' ? 'border-left: 4px solid #22c55e;' : 'border-left: 4px solid #ef4444;';
+                ?>
+                    <div class="report-grid-card" style="<?php echo $cardBorder; ?>">
+                        <div class="report-grid-header">
+                            <div class="report-avatar">
+                                <?php echo strtoupper(substr($row['fullname'], 0, 2)); ?>
+                            </div>
+                            <div class="report-grid-info">
+                                <h4><?php echo htmlspecialchars($row['fullname']); ?></h4>
+                                <span class="report-event"><?php echo htmlspecialchars($row['event_name']); ?></span>
+                                <span class="status-badge <?php echo $row['attendance_status'] === 'Present' ? 'status-present' : 'status-absent'; ?>">
+                                    <?php echo $row['attendance_status'] ?? 'N/A'; ?>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="report-grid-details">
+                            <div class="report-detail-row">
+                                <span class="detail-label">Date</span>
+                                <span class="detail-value"><?php echo date('M d, Y', strtotime($row['event_date'])); ?></span>
+                            </div>
+                            <div class="report-detail-row">
+                                <span class="detail-label">Method</span>
+                                <span class="detail-value"><?php echo $row['method'] ?? '-'; ?></span>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+                <?php if (count($reportData) > 50): ?>
+                    <div style="text-align: center; padding: 1rem; color: var(--text-muted);">
+                        ... and <?php echo count($reportData) - 50; ?> more records
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

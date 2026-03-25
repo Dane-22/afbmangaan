@@ -23,7 +23,7 @@
         if (!ctx) return;
 
         // Fetch data from API
-        fetch('api/dashboard_stats.php?type=trends')
+        fetch('/afb_mangaan_php/api/dashboard_stats.php?type=trends')
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.trends) {
@@ -100,7 +100,7 @@
         const ctx = document.getElementById('categoryDistributionChart');
         if (!ctx) return;
 
-        fetch('api/dashboard_stats.php?type=categories')
+        fetch('/afb_mangaan_php/api/dashboard_stats.php?type=categories')
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.categories) {
@@ -149,7 +149,7 @@
         const ctx = document.getElementById('eventTypeChart');
         if (!ctx) return;
 
-        fetch('api/dashboard_stats.php?type=event_types')
+        fetch('/afb_mangaan_php/api/dashboard_stats.php?type=event_types')
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.event_types) {
@@ -205,7 +205,7 @@
         const ctx = document.getElementById('retentionChart');
         if (!ctx) return;
 
-        fetch('api/dashboard_stats.php?type=retention')
+        fetch('/afb_mangaan_php/api/dashboard_stats.php?type=retention')
             .then(response => response.json())
             .then(data => {
                 if (data.success) {

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - AFB Mangaan Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/all.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo"><i class="ph ph-users-three"></i><span>AFB Mangaan</span></div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="demo-dashboard.html" class="nav-item"><i class="ph ph-squares-four"></i><span>Dashboard</span></a>
+                <a href="demo-attendance.html" class="nav-item"><i class="ph ph-check-circle"></i><span>Attendance</span></a>
+                <a href="demo-members.html" class="nav-item"><i class="ph ph-users"></i><span>Members</span></a>
+                <a href="demo-events.html" class="nav-item"><i class="ph ph-calendar"></i><span>Events</span></a>
+                <a href="demo-reports.html" class="nav-item active"><i class="ph ph-chart-bar"></i><span>Reports</span></a>
+                <a href="demo-settings.html" class="nav-item"><i class="ph ph-gear"></i><span>Settings</span></a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-nav">
+                <h2>Attendance Reports</h2>
+                <div class="user-menu">
+                    <a href="index.html" class="btn btn-sm"><i class="ph ph-sign-out"></i> Exit Demo</a>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="filters-row animate__animated animate__fadeInDown">
+                    <div class="filter-group">
+                        <label>From</label>
+                        <input type="date" value="2026-02-01" class="form-input">
+                    </div>
+                    <div class="filter-group">
+                        <label>To</label>
+                        <input type="date" value="2026-02-20" class="form-input">
+                    </div>
+                    <div class="filter-group">
+                        <label>Event</label>
+                        <select class="form-select">
+                            <option>All Events</option>
+                            <option>Sunday Worship Service</option>
+                            <option>Youth Fellowship Night</option>
+                            <option>Midweek Prayer Meeting</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Category</label>
+                        <select class="form-select">
+                            <option>All Categories</option>
+                            <option>Youth</option>
+                            <option>Adult</option>
+                            <option>Senior</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary"><i class="ph ph-magnifying-glass"></i> Generate</button>
+                </div>
+
+                <div class="summary-cards animate__animated animate__fadeInUp">
+                    <div class="summary-card">
+                        <i class="ph ph-users" style="color: #4f46e5; font-size: 24px;"></i>
+                        <div>
+                            <h4>1,247</h4>
+                            <p>Total Attendances</p>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <i class="ph ph-calendar-check" style="color: #10b981; font-size: 24px;"></i>
+                        <div>
+                            <h4>12</h4>
+                            <p>Events Held</p>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <i class="ph ph-trend-up" style="color: #f59e0b; font-size: 24px;"></i>
+                        <div>
+                            <h4>89%</h4>
+                            <p>Avg Attendance</p>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <i class="ph ph-crown" style="color: #8b5cf6; font-size: 24px;"></i>
+                        <div>
+                            <h4>156</h4>
+                            <p>Active Members</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row-two">
+                    <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.1s">
+                        <div class="card-header">
+                            <h3><i class="ph ph-chart-bar"></i> Attendance by Event</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="eventChart" height="150"></canvas>
+                        </div>
+                    </div>
+                    <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.2s">
+                        <div class="card-header">
+                            <h3><i class="ph ph-trophy"></i> Top Attendees</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="top-list">
+                                <div class="top-item">
+                                    <span class="rank">1</span>
+                                    <span class="name">Juan Dela Cruz</span>
+                                    <span class="count">12/12</span>
+                                    <span class="bar"><span style="width: 100%"></span></span>
+                                </div>
+                                <div class="top-item">
+                                    <span class="rank">2</span>
+                                    <span class="name">Maria Santos</span>
+                                    <span class="count">11/12</span>
+                                    <span class="bar"><span style="width: 92%"></span></span>
+                                </div>
+                                <div class="top-item">
+                                    <span class="rank">3</span>
+                                    <span class="name">Pedro Penduko</span>
+                                    <span class="count">10/12</span>
+                                    <span class="bar"><span style="width: 83%"></span></span>
+                                </div>
+                                <div class="top-item">
+                                    <span class="rank">4</span>
+                                    <span class="name">Ana Makiling</span>
+                                    <span class="count">9/12</span>
+                                    <span class="bar"><span style="width: 75%"></span></span>
+                                </div>
+                                <div class="top-item">
+                                    <span class="rank">5</span>
+                                    <span class="name">Diego Silang</span>
+                                    <span class="count">9/12</span>
+                                    <span class="bar"><span style="width: 75%"></span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.3s">
+                    <div class="card-header">
+                        <h3><i class="ph ph-list"></i> Detailed Report</h3>
+                        <div class="export-btns">
+                            <button class="btn btn-secondary btn-sm"><i class="ph ph-file-csv"></i> CSV</button>
+                            <button class="btn btn-secondary btn-sm"><i class="ph ph-file-pdf"></i> PDF</button>
+                            <button class="btn btn-secondary btn-sm"><i class="ph ph-file-xls"></i> Excel</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="report-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Member</th>
+                                        <th>Category</th>
+                                        <th>Events Attended</th>
+                                        <th>Attendance Rate</th>
+                                        <th>Last Attendance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Juan Dela Cruz</strong></td>
+                                        <td><span class="badge badge-adult">Adult</span></td>
+                                        <td>12</td>
+                                        <td><span class="rate-high">100%</span></td>
+                                        <td>Feb 12, 2026</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Maria Santos</strong></td>
+                                        <td><span class="badge badge-youth">Youth</span></td>
+                                        <td>11</td>
+                                        <td><span class="rate-high">92%</span></td>
+                                        <td>Feb 12, 2026</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Pedro Penduko</strong></td>
+                                        <td><span class="badge badge-senior">Senior</span></td>
+                                        <td>10</td>
+                                        <td><span class="rate-medium">83%</span></td>
+                                        <td>Feb 11, 2026</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('eventChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Sunday Service', 'Youth Night', 'Prayer Meeting', 'Special Event', 'Bible Study'],
+                datasets: [{
+                    label: 'Attendance',
+                    data: [89, 45, 38, 62, 55],
+                    backgroundColor: '#4f46e5',
+                    borderRadius: 6
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: #f8fafc; }
+        .app-container { display: flex; min-height: 100vh; }
+        
+        .sidebar { width: 260px; background: white; border-right: 1px solid #e2e8f0; padding: 24px 16px; position: fixed; height: 100vh; }
+        .sidebar-header { margin-bottom: 32px; }
+        .logo { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 20px; color: #4f46e5; }
+        .logo i { font-size: 32px; }
+        
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; text-decoration: none; color: #64748b; margin-bottom: 4px; transition: all 0.2s; }
+        .nav-item:hover { background: #f1f5f9; color: #4f46e5; }
+        .nav-item.active { background: #4f46e5; color: white; }
+        
+        .main-content { flex: 1; margin-left: 260px; }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 32px; background: white; border-bottom: 1px solid #e2e8f0; }
+        .content-wrapper { padding: 32px; display: flex; flex-direction: column; gap: 24px; }
+        
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
+        .btn-sm { padding: 6px 12px; font-size: 13px; }
+        .btn-primary { background: #4f46e5; color: white; }
+        .btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+        
+        .filters-row { display: flex; gap: 16px; align-items: end; flex-wrap: wrap; }
+        .filter-group { display: flex; flex-direction: column; gap: 6px; }
+        .filter-group label { font-size: 13px; color: #64748b; font-weight: 500; }
+        .form-input, .form-select { padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; min-width: 140px; }
+        
+        .summary-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+        .summary-card { background: white; padding: 24px; border-radius: 12px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .summary-card h4 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+        .summary-card p { color: #64748b; font-size: 14px; }
+        
+        .row-two { display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; }
+        
+        .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .card-header { padding: 20px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .card-header h3 { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
+        .card-body { padding: 24px; }
+        
+        .export-btns { display: flex; gap: 8px; }
+        
+        .top-list { display: flex; flex-direction: column; gap: 12px; }
+        .top-item { display: flex; align-items: center; gap: 12px; }
+        .rank { width: 28px; height: 28px; background: #e0e7ff; color: #4f46e5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
+        .name { flex: 1; font-weight: 500; }
+        .count { font-size: 13px; color: #64748b; min-width: 50px; }
+        .bar { flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+        .bar span { display: block; height: 100%; background: #4f46e5; border-radius: 3px; }
+        
+        .report-table { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { font-weight: 600; color: #64748b; font-size: 13px; text-transform: uppercase; }
+        
+        .badge { padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .badge-adult { background: #dbeafe; color: #1d4ed8; }
+        .badge-youth { background: #e0e7ff; color: #4f46e5; }
+        .badge-senior { background: #fef3c7; color: #d97706; }
+        .rate-high { color: #10b981; font-weight: 600; }
+        .rate-medium { color: #f59e0b; font-weight: 600; }
+        
+        @media (max-width: 1024px) {
+            .summary-cards { grid-template-columns: repeat(2, 1fr); }
+            .row-two { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; }
+            .summary-cards { grid-template-columns: 1fr; }
+            .filters-row { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</body>
+</html>

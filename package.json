@@ -1,0 +1,18 @@
+{
+  "name": "afb-mangaan-attendance-sheets",
+  "version": "1.0.0",
+  "description": "AFB Mangaan Attendance System with Google Sheets as Database",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "vercel": "^32.0.0"
+  }
+}

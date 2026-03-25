@@ -45,7 +45,7 @@ $currentUser = getCurrentUser();
     </div>
 <?php endif; ?>
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" class="settings-layout">
     <!-- Profile Info -->
     <div class="card animate__animated animate__fadeIn">
         <div class="card-header">

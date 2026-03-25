@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AFB Mangaan Demo</title>
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/animations.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/all.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="light-theme">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar animate__animated animate__slideInLeft">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="ph ph-users-three"></i>
+                    <span>AFB Mangaan</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="demo-dashboard.html" class="nav-item active">
+                    <i class="ph ph-squares-four"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="demo-attendance.html" class="nav-item">
+                    <i class="ph ph-check-circle"></i>
+                    <span>Attendance</span>
+                </a>
+                <a href="demo-members.html" class="nav-item">
+                    <i class="ph ph-users"></i>
+                    <span>Members</span>
+                </a>
+                <a href="demo-events.html" class="nav-item">
+                    <i class="ph ph-calendar"></i>
+                    <span>Events</span>
+                </a>
+                <a href="demo-reports.html" class="nav-item">
+                    <i class="ph ph-chart-bar"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="demo-settings.html" class="nav-item">
+                    <i class="ph ph-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Nav -->
+            <header class="top-nav animate__animated animate__fadeInDown">
+                <h2>Dashboard</h2>
+                <div class="user-menu">
+                    <span>Welcome, Admin</span>
+                    <a href="index.html" class="btn btn-sm"><i class="ph ph-sign-out"></i> Exit Demo</a>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="content-wrapper">
+                <!-- Stats Cards -->
+                <div class="stats-grid animate__animated animate__fadeInUp">
+                    <div class="stat-card primary">
+                        <div class="stat-icon"><i class="ph ph-users"></i></div>
+                        <div class="stat-info">
+                            <h3>156</h3>
+                            <p>Total Members</p>
+                        </div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-icon"><i class="ph ph-check-circle"></i></div>
+                        <div class="stat-info">
+                            <h3>89</h3>
+                            <p>Present Today</p>
+                        </div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-icon"><i class="ph ph-calendar-check"></i></div>
+                        <div class="stat-info">
+                            <h3>12</h3>
+                            <p>This Month's Events</p>
+                        </div>
+                    </div>
+                    <div class="stat-card info">
+                        <div class="stat-icon"><i class="ph ph-trend-up"></i></div>
+                        <div class="stat-info">
+                            <h3>92%</h3>
+                            <p>Attendance Rate</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.1s">
+                            <div class="card-header">
+                                <h3><i class="ph ph-chart-line"></i> Attendance Trends</h3>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="attendanceChart" height="100"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.2s">
+                            <div class="card-header">
+                                <h3><i class="ph ph-chart-pie"></i> Category Distribution</h3>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.3s">
+                    <div class="card-header">
+                        <h3><i class="ph ph-clock-counter-clockwise"></i> Recent Activity</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="activity-list">
+                            <div class="activity-item">
+                                <div class="activity-icon success"><i class="ph ph-check"></i></div>
+                                <div class="activity-content">
+                                    <p>Juan Dela Cruz marked present</p>
+                                    <span class="text-muted">2 minutes ago</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon primary"><i class="ph ph-user-plus"></i></div>
+                                <div class="activity-content">
+                                    <p>New member: Maria Santos added</p>
+                                    <span class="text-muted">1 hour ago</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon warning"><i class="ph ph-calendar-plus"></i></div>
+                                <div class="activity-content">
+                                    <p>Event created: Youth Fellowship Night</p>
+                                    <span class="text-muted">3 hours ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Mock Charts
+        const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+        new Chart(attendanceCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                datasets: [{
+                    label: 'Attendance',
+                    data: [82, 89, 94, 91],
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Youth', 'Adult', 'Senior', 'Child'],
+                datasets: [{
+                    data: [45, 68, 32, 11],
+                    backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444']
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: #f8fafc; }
+        .dark-theme { background: #0f172a; color: #e2e8f0; }
+        
+        .app-container { display: flex; min-height: 100vh; }
+        
+        .sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            padding: 24px 16px;
+            position: fixed;
+            height: 100vh;
+        }
+        .dark-theme .sidebar { background: #1e293b; border-color: #334155; }
+        
+        .sidebar-header { margin-bottom: 32px; }
+        .logo { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 20px; color: #4f46e5; }
+        .logo i { font-size: 32px; }
+        
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; text-decoration: none; color: #64748b; margin-bottom: 4px; transition: all 0.2s; }
+        .nav-item:hover { background: #f1f5f9; color: #4f46e5; }
+        .nav-item.active { background: #4f46e5; color: white; }
+        .dark-theme .nav-item:hover { background: #334155; }
+        
+        .main-content { flex: 1; margin-left: 260px; }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 32px; background: white; border-bottom: 1px solid #e2e8f0; }
+        .dark-theme .top-nav { background: #1e293b; border-color: #334155; }
+        
+        .content-wrapper { padding: 32px; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px; }
+        .stat-card { background: white; padding: 24px; border-radius: 12px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .dark-theme .stat-card { background: #1e293b; }
+        .stat-card.primary .stat-icon { background: #e0e7ff; color: #4f46e5; }
+        .stat-card.success .stat-icon { background: #d1fae5; color: #10b981; }
+        .stat-card.warning .stat-icon { background: #fef3c7; color: #f59e0b; }
+        .stat-card.info .stat-icon { background: #dbeafe; color: #3b82f6; }
+        .stat-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .stat-info h3 { font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+        .dark-theme .stat-info h3 { color: #f1f5f9; }
+        .stat-info p { color: #64748b; font-size: 14px; }
+        
+        .row { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; }
+        
+        .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .dark-theme .card { background: #1e293b; }
+        .card-header { padding: 20px 24px; border-bottom: 1px solid #e2e8f0; }
+        .dark-theme .card-header { border-color: #334155; }
+        .card-header h3 { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
+        .card-body { padding: 24px; }
+        
+        .activity-list { display: flex; flex-direction: column; gap: 16px; }
+        .activity-item { display: flex; align-items: center; gap: 16px; }
+        .activity-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .activity-icon.success { background: #d1fae5; color: #10b981; }
+        .activity-icon.primary { background: #e0e7ff; color: #4f46e5; }
+        .activity-icon.warning { background: #fef3c7; color: #f59e0b; }
+        .activity-content p { font-weight: 500; margin-bottom: 2px; }
+        .text-muted { color: #94a3b8; font-size: 13px; }
+        
+        .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-sm { font-size: 13px; padding: 6px 12px; }
+        .btn-primary { background: #4f46e5; color: white; }
+        
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .row { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; position: relative; height: auto; }
+            .main-content { margin-left: 0; }
+            .app-container { flex-direction: column; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</body>
+</html>

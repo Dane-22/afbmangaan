@@ -8,13 +8,31 @@ require_once __DIR__ . '/includes/auth_check.php';
 require_once __DIR__ . '/functions/attendance_logic.php';
 require_once __DIR__ . '/functions/activity_logger.php';
 
+// Get current church
+$church = $_SESSION['church'] ?? 'AFB Mangaan';
+
 // Get dashboard stats
 $todayEvent = getTodayEvent();
 $recentActivity = getRecentActivity(5);
 $retentionStats = getRetentionStats(3);
+
+// Get total members for this church
+$pdo = getDB();
+$stmt = $pdo->prepare("SELECT COUNT(*) as total FROM attendees WHERE church = ? AND status = 'Active'");
+$stmt->execute([$church]);
+$totalMembers = $stmt->fetch()['total'] ?? 0;
 ?>
 
 <?php include __DIR__ . '/includes/header.php'; ?>
+
+<!-- Church Indicator -->
+<div class="church-indicator animate__animated animate__fadeIn" style="background: linear-gradient(135deg, var(--primary-dark), var(--primary)); color: var(--bg-primary); padding: 0.75rem 1.5rem; border-radius: var(--radius); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; box-shadow: var(--shadow-md);">
+    <i class="ph ph-buildings" style="font-size: 1.25rem;"></i>
+    <div>
+        <strong style="font-size: 1rem; font-family: var(--font-heading);"><?php echo htmlspecialchars($church); ?></strong>
+        <br><small style="opacity: 0.9;">Current Branch</small>
+    </div>
+</div>
 
 <div class="stats-grid animate__animated animate__fadeIn">
     <div class="stat-card card-entry">
@@ -23,8 +41,8 @@ $retentionStats = getRetentionStats(3);
         </div>
         <div class="stat-content">
             <div class="stat-label">Total Members</div>
-            <div class="stat-value" id="totalMembers">--</div>
-            <div class="stat-change">Active members</div>
+            <div class="stat-value" id="totalMembers"><?php echo $totalMembers; ?></div>
+            <div class="stat-change">Active members in <?php echo htmlspecialchars($church); ?></div>
         </div>
     </div>
     
@@ -66,7 +84,7 @@ $retentionStats = getRetentionStats(3);
     </div>
 </div>
 
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;" class="dashboard-charts-layout">
     <!-- Attendance Trends Chart -->
     <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
         <div class="card-header">
@@ -99,7 +117,7 @@ $retentionStats = getRetentionStats(3);
     </div>
 </div>
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;" class="dashboard-charts-layout">
     <!-- Member Retention Chart -->
     <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
         <div class="card-header">

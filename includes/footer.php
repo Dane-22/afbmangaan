@@ -21,33 +21,79 @@
     <script>
         // Initialize sidebar functionality
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOMContentLoaded fired at', new Date().toISOString());
+            
+            // Check if elements exist BEFORE getting them
+            console.log('menuToggle exists:', !!document.getElementById('menuToggle'));
+            console.log('sidebar exists:', !!document.getElementById('sidebar'));
+            console.log('sidebarClose exists:', !!document.getElementById('sidebarClose'));
+            console.log('sidebarOverlay exists:', !!document.getElementById('sidebarOverlay'));
+            
             const menuToggle = document.getElementById('menuToggle');
             const sidebar = document.getElementById('sidebar');
             const sidebarClose = document.getElementById('sidebarClose');
             const sidebarOverlay = document.getElementById('sidebarOverlay');
             
+            console.log('Elements found:', {
+                menuToggle: menuToggle?.tagName || 'null',
+                sidebar: sidebar?.tagName || 'null',
+                sidebarClose: sidebarClose?.tagName || 'null',
+                sidebarOverlay: sidebarOverlay?.tagName || 'null'
+            });
+            
             function openSidebar() {
-                sidebar.classList.add('active');
-                sidebarOverlay.classList.add('active');
+                console.log('Opening sidebar');
+                if (sidebar) {
+                    sidebar.classList.add('active');
+                    console.log('Sidebar classes after open:', sidebar.className);
+                    console.log('Sidebar computed display:', getComputedStyle(sidebar).display);
+                    console.log('Sidebar computed visibility:', getComputedStyle(sidebar).visibility);
+                    console.log('Sidebar computed zIndex:', getComputedStyle(sidebar).zIndex);
+                    console.log('Sidebar computed position:', getComputedStyle(sidebar).position);
+                    console.log('Sidebar computed left:', getComputedStyle(sidebar).left);
+                }
+                if (sidebarOverlay) sidebarOverlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
             }
             
             function closeSidebar() {
-                sidebar.classList.remove('active');
-                sidebarOverlay.classList.remove('active');
+                console.log('Closing sidebar');
+                if (sidebar) sidebar.classList.remove('active');
+                if (sidebarOverlay) sidebarOverlay.classList.remove('active');
                 document.body.style.overflow = '';
             }
             
-            if (menuToggle) menuToggle.addEventListener('click', openSidebar);
-            if (sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
-            if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+            if (menuToggle) {
+                console.log('Adding click listener to menuToggle');
+                menuToggle.addEventListener('click', function(e) {
+                    console.log('menuToggle clicked!');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openSidebar();
+                });
+            } else {
+                console.error('menuToggle not found!');
+            }
+            
+            if (sidebarClose) {
+                sidebarClose.addEventListener('click', closeSidebar);
+            }
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', closeSidebar);
+            }
             
             // User dropdown
             const userDropdownBtn = document.getElementById('userDropdownBtn');
             const userDropdownMenu = document.getElementById('userDropdownMenu');
             
+            console.log('User dropdown elements:', {
+                userDropdownBtn: userDropdownBtn?.tagName || 'null',
+                userDropdownMenu: userDropdownMenu?.tagName || 'null'
+            });
+            
             if (userDropdownBtn && userDropdownMenu) {
                 userDropdownBtn.addEventListener('click', function(e) {
+                    console.log('User dropdown clicked');
                     e.stopPropagation();
                     userDropdownMenu.classList.toggle('active');
                 });
@@ -55,49 +101,39 @@
                 document.addEventListener('click', function() {
                     userDropdownMenu.classList.remove('active');
                 });
+            } else {
+                console.error('User dropdown elements not found!');
             }
             
-            // Toast notification system
-            window.showToast = function(message, type = 'info') {
-                const container = document.getElementById('toastContainer');
-                const toast = document.createElement('div');
-                toast.className = `toast toast-${type} animate__animated animate__fadeInRight`;
-                
-                const icon = type === 'success' ? 'ph-check-circle' : 
-                            type === 'error' ? 'ph-x-circle' : 
-                            type === 'warning' ? 'ph-warning' : 'ph-info';
-                
-                toast.innerHTML = `
-                    <i class="ph ${icon}"></i>
-                    <span>${message}</span>
-                `;
-                
-                container.appendChild(toast);
-                
-                setTimeout(() => {
-                    toast.classList.remove('animate__fadeInRight');
-                    toast.classList.add('animate__fadeOutRight');
-                    setTimeout(() => toast.remove(), 300);
-                }, 3000);
-            };
+            console.log('Footer initialization complete');
             
-            // Loading overlay
-            window.showLoading = function(show = true) {
-                const overlay = document.getElementById('loadingOverlay');
-                if (show) {
-                    overlay.classList.add('active');
-                } else {
-                    overlay.classList.remove('active');
-                }
-            };
+            // DEBUG: Check if loading overlay is blocking clicks
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            console.log('Loading overlay:', loadingOverlay ? {
+                hasActiveClass: loadingOverlay.classList.contains('active'),
+                opacity: getComputedStyle(loadingOverlay).opacity,
+                visibility: getComputedStyle(loadingOverlay).visibility,
+                display: getComputedStyle(loadingOverlay).display,
+                zIndex: getComputedStyle(loadingOverlay).zIndex
+            } : 'null');
             
-            // Handle URL parameters for notifications
-            const urlParams = new URLSearchParams(window.location.search);
-            const success = urlParams.get('success');
-            const error = urlParams.get('error');
+            // Force remove active class from loading overlay if present
+            if (loadingOverlay && loadingOverlay.classList.contains('active')) {
+                console.warn('Loading overlay was active - removing it!');
+                loadingOverlay.classList.remove('active');
+            }
             
-            if (success) showToast(decodeURIComponent(success), 'success');
-            if (error) showToast(decodeURIComponent(error), 'error');
+            // Fix toast container blocking clicks when empty
+            const toastContainer = document.getElementById('toastContainer');
+            if (toastContainer) {
+                toastContainer.style.pointerEvents = 'none';
+                // Enable pointer events when toasts are added
+                const observer = new MutationObserver(function(mutations) {
+                    const hasToasts = toastContainer.querySelector('.toast') !== null;
+                    toastContainer.style.pointerEvents = hasToasts ? 'auto' : 'none';
+                });
+                observer.observe(toastContainer, { childList: true, subtree: true });
+            }
         });
     </script>
     

@@ -27,15 +27,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             if ($id) {
                 // Update
-                $stmt = $pdo->prepare("UPDATE attendees SET fullname=?, category=?, contact=?, email=?, status=? WHERE id=?");
-                $stmt->execute([$fullname, $category, $contact, $email, $status, $id]);
+                $stmt = $pdo->prepare("UPDATE attendees SET fullname=?, category=?, contact=?, email=?, status=? WHERE id=? AND church=?");
+                $stmt->execute([$fullname, $category, $contact, $email, $status, $id, $_SESSION['church'] ?? 'AFB Mangaan']);
                 $message = 'Member updated successfully';
                 logActivity($_SESSION['user_id'], 'MEMBER_UPDATE', "Updated member ID: {$id}");
             } else {
                 // Insert
                 $qrToken = generateQRToken(rand(1000, 9999));
-                $stmt = $pdo->prepare("INSERT INTO attendees (fullname, category, contact, email, qr_token, status) VALUES (?, ?, ?, ?, ?, ?)");
-                $stmt->execute([$fullname, $category, $contact, $email, $qrToken, $status]);
+                $stmt = $pdo->prepare("INSERT INTO attendees (church, fullname, category, contact, email, qr_token, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$_SESSION['church'] ?? 'AFB Mangaan', $fullname, $category, $contact, $email, $qrToken, $status]);
                 $message = 'Member added successfully';
                 logActivity($_SESSION['user_id'], 'MEMBER_CREATE', "Created member: {$fullname}");
             }
@@ -60,14 +60,17 @@ $pdo = getDB();
 $search = $_GET['search'] ?? '';
 $categoryFilter = $_GET['category'] ?? '';
 $statusFilter = $_GET['status'] ?? 'Active';
+$church = $_SESSION['church'] ?? 'AFB Mangaan';
 
-$sql = "SELECT * FROM attendees WHERE 1=1";
-$params = [];
+$sql = "SELECT * FROM attendees WHERE church = ?";
+$params = [$church];
 
 if ($search) {
     $sql .= " AND (fullname LIKE ? OR qr_token LIKE ? OR contact LIKE ?)";
     $searchParam = "%{$search}%";
-    $params = [$searchParam, $searchParam, $searchParam];
+    $params[] = $searchParam;
+    $params[] = $searchParam;
+    $params[] = $searchParam;
 }
 
 if ($categoryFilter) {
@@ -87,7 +90,7 @@ $stmt->execute($params);
 $members = $stmt->fetchAll();
 
 // Get categories for filter
-$categories = ['Youth', 'Adult', 'Senior', 'Child'];
+$categories = ['MCYO', 'WMO', 'CCMO', 'KIDS'];
 
 // Check if adding/editing
 $editMode = false;
@@ -248,7 +251,8 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add';
         </a>
     </div>
     <div class="card-body">
-        <div class="table-container">
+        <!-- Desktop Table View -->
+        <div class="table-container desktop-only">
             <table class="data-table">
                 <thead>
                     <tr>
@@ -264,22 +268,22 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add';
                 <tbody>
                     <?php foreach ($members as $member): ?>
                         <tr>
-                            <td><?php echo $member['id']; ?></td>
-                            <td>
+                            <td data-label="ID"><?php echo $member['id']; ?></td>
+                            <td data-label="Name">
                                 <strong><?php echo htmlspecialchars($member['fullname']); ?></strong>
                                 <?php if ($member['email']): ?>
                                     <br><small><?php echo htmlspecialchars($member['email']); ?></small>
                                 <?php endif; ?>
                             </td>
-                            <td><?php echo $member['category']; ?></td>
-                            <td><?php echo htmlspecialchars($member['contact']); ?></td>
-                            <td><code><?php echo $member['qr_token']; ?></code></td>
-                            <td>
+                            <td data-label="Category"><?php echo $member['category']; ?></td>
+                            <td data-label="Contact"><?php echo htmlspecialchars($member['contact']); ?></td>
+                            <td data-label="QR Token"><code><?php echo $member['qr_token']; ?></code></td>
+                            <td data-label="Status">
                                 <span class="badge badge-<?php echo $member['status'] === 'Active' ? 'success' : 'secondary'; ?>">
                                     <?php echo $member['status']; ?>
                                 </span>
                             </td>
-                            <td>
+                            <td data-label="Actions">
                                 <div style="display: flex; gap: 0.5rem;">
                                     <a href="?edit=<?php echo $member['id']; ?>" class="btn btn-sm btn-secondary" title="Edit">
                                         <i class="ph ph-pencil"></i>
@@ -297,6 +301,56 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add';
                     <?php endforeach; ?>
                 </tbody>
             </table>
+        </div>
+
+        <!-- Mobile Grid View -->
+        <div class="mobile-grid-view mobile-only">
+            <?php foreach ($members as $member): 
+                $cardBorder = $member['status'] === 'Active' ? 'border-left: 4px solid #22c55e;' : 'border-left: 4px solid #6b7280;';
+            ?>
+                <div class="member-grid-card" style="<?php echo $cardBorder; ?>">
+                    <div class="member-grid-header">
+                        <div class="member-avatar-large">
+                            <?php echo strtoupper(substr($member['fullname'], 0, 2)); ?>
+                        </div>
+                        <div class="member-grid-info">
+                            <h4><?php echo htmlspecialchars($member['fullname']); ?></h4>
+                            <span class="member-code"><?php echo $member['qr_token']; ?></span>
+                            <span class="status-badge <?php echo $member['status'] === 'Active' ? 'status-present' : 'status-inactive'; ?>">
+                                <?php echo $member['status']; ?>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="member-grid-details">
+                        <div class="member-detail-row">
+                            <span class="detail-label">Category</span>
+                            <span class="detail-value"><?php echo $member['category']; ?></span>
+                        </div>
+                        <div class="member-detail-row">
+                            <span class="detail-label">Contact</span>
+                            <span class="detail-value"><?php echo htmlspecialchars($member['contact']); ?></span>
+                        </div>
+                        <?php if ($member['email']): ?>
+                        <div class="member-detail-row">
+                            <span class="detail-label">Email</span>
+                            <span class="detail-value"><?php echo htmlspecialchars($member['email']); ?></span>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="member-grid-actions">
+                        <a href="?edit=<?php echo $member['id']; ?>" class="btn btn-edit">
+                            <i class="ph ph-pencil"></i> Edit
+                        </a>
+                        <form method="POST" style="display: contents;" onsubmit="return confirm('Archive this member?');">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="id" value="<?php echo $member['id']; ?>">
+                            <button type="submit" class="btn btn-archive">
+                                <i class="ph ph-archive"></i> Archive
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            <?php endforeach; ?>
         </div>
     </div>
 </div>

@@ -110,7 +110,8 @@ $users = getAllUsers();
         </form>
     </div>
     <div class="card-body">
-        <div class="table-container">
+        <!-- Desktop Table View -->
+        <div class="table-container desktop-only">
             <table class="data-table">
                 <thead>
                     <tr>
@@ -125,9 +126,9 @@ $users = getAllUsers();
                 <tbody>
                     <?php foreach ($logs as $log): ?>
                         <tr>
-                            <td><?php echo $log['id']; ?></td>
-                            <td><?php echo date('Y-m-d H:i:s', strtotime($log['timestamp'])); ?></td>
-                            <td>
+                            <td data-label="ID"><?php echo $log['id']; ?></td>
+                            <td data-label="Timestamp"><?php echo date('Y-m-d H:i:s', strtotime($log['timestamp'])); ?></td>
+                            <td data-label="User">
                                 <?php if ($log['user_name']): ?>
                                     <?php echo htmlspecialchars($log['user_name']); ?>
                                     <br><small><?php echo $log['username']; ?></small>
@@ -135,22 +136,69 @@ $users = getAllUsers();
                                     <span class="badge badge-secondary">System</span>
                                 <?php endif; ?>
                             </td>
-                            <td>
+                            <td data-label="Action">
                                 <span class="badge badge-info"><?php echo $log['action']; ?></span>
                             </td>
-                            <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">
+                            <td data-label="Details" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">
                                 <?php echo htmlspecialchars($log['details'] ?? '-'); ?>
                             </td>
-                            <td><code><?php echo $log['ip_address'] ?? '-'; ?></code></td>
+                            <td data-label="IP Address"><code><?php echo $log['ip_address'] ?? '-'; ?></code></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
+
+        <!-- Mobile Grid View -->
+        <div class="mobile-grid-view mobile-only">
+            <?php foreach ($logs as $log): 
+                $actionColor = match($log['action']) {
+                    'LOGIN' => '#22c55e',
+                    'LOGOUT' => '#6b7280',
+                    'CREATE', 'ADD' => '#3b82f6',
+                    'UPDATE', 'EDIT' => '#f59e0b',
+                    'DELETE', 'REMOVE', 'ARCHIVE' => '#ef4444',
+                    default => '#6b7280'
+                };
+                $cardBorder = "border-left: 4px solid {$actionColor};";
+            ?>
+                <div class="log-grid-card" style="<?php echo $cardBorder; ?>">
+                    <div class="log-grid-header">
+                        <div class="log-icon" style="background: <?php echo $actionColor; ?>">
+                            <i class="ph ph-scroll"></i>
+                        </div>
+                        <div class="log-grid-info">
+                            <h4><?php echo htmlspecialchars($log['action']); ?></h4>
+                            <span class="log-timestamp"><?php echo date('M d, Y g:i A', strtotime($log['timestamp'])); ?></span>
+                        </div>
+                    </div>
+                    <div class="log-grid-details">
+                        <div class="log-detail-row">
+                            <span class="detail-label">User</span>
+                            <span class="detail-value">
+                                <?php if ($log['user_name']): ?>
+                                    <?php echo htmlspecialchars($log['user_name']); ?>
+                                <?php else: ?>
+                                    <span class="badge badge-secondary">System</span>
+                                <?php endif; ?>
+                            </span>
+                        </div>
+                        <div class="log-detail-row">
+                            <span class="detail-label">Details</span>
+                            <span class="detail-value"><?php echo htmlspecialchars($log['details'] ?? '-'); ?></span>
+                        </div>
+                        <div class="log-detail-row">
+                            <span class="detail-label">IP Address</span>
+                            <span class="detail-value"><code><?php echo $log['ip_address'] ?? '-'; ?></code></span>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
         
         <!-- Pagination -->
         <?php if ($totalPages > 1): ?>
-            <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem;">
+            <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem;" class="pagination-container">
                 <?php if ($page > 1): ?>
                     <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $page - 1])); ?>" class="btn btn-sm btn-secondary">Previous</a>
                 <?php endif; ?>

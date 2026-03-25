@@ -34,91 +34,114 @@ A comprehensive church attendance management system with QR code support, real-t
 - **Backend**: PHP 7.4+ with PDO
 - **Database**: MySQL 5.7+
 - **Frontend**: HTML5, CSS3, JavaScript (vanilla)
-- **Charts**: Chart.js 4.x
-- **Icons**: Phosphor Icons
-- **QR Scanner**: html5-qrcode
-- **PDF**: Dompdf 2.x
-- **Excel**: PhpSpreadsheet 1.x
 
-## Installation
+This repository contains **two versions** of the attendance system:
+
+### Version 1: Vercel + Google Sheets (Recommended - No Hosting Cost)
+- **Frontend**: Single Page Application (SPA) deployed on Vercel
+- **Backend**: Serverless Node.js functions
+- **Database**: Google Sheets (free, 300 reads/60 writes per minute)
+- **Cost**: $0
+- **Best for**: Churches without hosting budget
+
+### Version 2: PHP + MySQL (Traditional)
+- **Frontend**: PHP templates with vanilla JS
+- **Backend**: PHP with PDO
+- **Database**: MySQL
+- **Cost**: Requires web hosting
+- **Best for**: Churches with existing hosting infrastructure
+
+---
+
+## 📊 Features
+
+### Dashboard
+- Real-time attendance statistics
+- Today's event overview
+- 7-day activity chart
+- Category breakdown (Youth, Adult, Senior, Child)
+
+### Members Management
+- Add/edit/archive members
+- Auto-generated QR codes
+- Search by name or QR token
+- Category-based filtering
+
+### Events Management
+- Create and manage church events
+- Event types: Sunday Service, Midweek Service, Special Event, Meeting
+- Status tracking: Upcoming, Ongoing, Completed, Cancelled
+
+### Attendance Recording
+- Quick member search
+- Mark Present/Absent
+- Real-time attendance list
+- Method tracking (Manual, QR Scan)
+
+### Reports
+- Attendance trends
+- Category-based statistics
+- Export capabilities (via Google Sheets)
+
+---
+
+## 🚀 Vercel Deployment
 
 ### Prerequisites
-- WAMP/XAMPP/LAMP server
-- PHP 7.4 or higher
-- MySQL 5.7 or higher
-- Composer (optional, for PDF/Excel features)
+1. Google account (for Google Sheets)
+2. Vercel account (free)
+3. Node.js installed locally
 
-### Setup Steps
+### Environment Variables
 
-1. **Clone or extract files** to your web root (e.g., `c:\wamp64\www\afb_mangaan\`)
+Set these in Vercel dashboard or via CLI:
 
-2. **Import the database**:
-   ```bash
-   mysql -u root -p < afb_mangaan_db.sql
-   ```
-   Or use phpMyAdmin to import `afb_mangaan_db.sql`
+```bash
+GOOGLE_SHEETS_ID=your-spreadsheet-id
+GOOGLE_SERVICE_ACCOUNT_EMAIL=service-account@project.iam.gserviceaccount.com
+GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+JWT_SECRET=your-random-secret-key
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=your-secure-password
+```
 
-3. **Configure environment**:
-   - Copy `.env` and update database credentials:
-   ```
-   DB_HOST=localhost
-   DB_PORT=3306
-   DB_NAME=afb_mangaan_db
-   DB_USER=root
-   DB_PASSWORD=your_password
-   ```
+### API Endpoints
 
-4. **Install dependencies** (for PDF/Excel export):
-   ```bash
-   cd c:\wamp64\www\afb_mangaan
-   composer install
-   ```
-   If Composer is not available, CSV export will still work.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/login` | Authenticate |
+| GET | `/api/dashboard` | Get stats |
+| GET | `/api/attendees` | List members |
+| POST | `/api/attendees` | Create member |
+| PUT | `/api/attendees` | Update member |
+| DELETE | `/api/attendees` | Archive member |
+| GET | `/api/events` | List events |
+| POST | `/api/events` | Create event |
+| PUT | `/api/events` | Update event |
+| DELETE | `/api/events` | Cancel event |
+| GET | `/api/attendance` | Get records |
+| POST | `/api/attendance` | Record attendance |
+| DELETE | `/api/attendance` | Delete record |
 
-5. **Access the system**:
-   ```
-   http://localhost/afb_mangaan/
-   ```
+---
 
-## Default Credentials
+## 📁 Project Structure
 
-| Username | Password | Role   |
-|----------|----------|--------|
-| admin    | admin123 | Admin  |
-| operator | password | Operator |
-
-## Project Structure
-
+### Vercel Version (Root)
 ```
 afb_mangaan/
-├── api/                    # AJAX API endpoints
-│   ├── dashboard_stats.php
-│   ├── delete_attendance.php
-│   ├── export_attendance.php
-│   ├── export_members.php
-│   ├── export_report.php   # PDF/CSV/Excel exports
-│   ├── get_attendance.php
-│   ├── get_attendee_by_qr.php
-│   ├── record_attendance.php
-│   └── search_attendees.php
-├── assets/
-│   ├── css/
-│   │   ├── animations.css  # Custom animations
-│   │   └── main.css        # Theme variables & components
-│   └── js/
-│       ├── attendance_ajax.js    # Live search & QR scanner
-│       ├── dashboard_charts.js   # Chart.js integration
-│       └── theme_handler.js      # Light/Dark toggle
-├── config/
-│   └── db.php             # PDO connection
-├── functions/
-│   ├── activity_logger.php
-│   ├── attendance_logic.php
-│   ├── auth_functions.php
-│   └── report_engine.php
-├── includes/
-│   ├── auth_check.php     # Session validation
-│   ├── footer.php
+├── api/                       # Serverless functions
+│   ├── _utils/sheets.js      # Google Sheets utilities
+│   ├── attendees.js          # Members CRUD
+│   ├── events.js             # Events CRUD
+│   ├── attendance.js         # Attendance recording
+│   ├── login.js              # Authentication
+│   └── dashboard.js          # Stats & analytics
+├── index.html                # Single Page Application
+├── vercel.json               # Vercel configuration
+├── package.json              # Dependencies
+├── VERCEL_DEPLOY.md          # Deployment guide
+└── README.md                 # This file
 │   ├── header.php
 │   └── sidebar.php
 ├── .env                   # Environment configuration

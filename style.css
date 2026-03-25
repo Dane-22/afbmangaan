@@ -1,0 +1,1682 @@
+/* ============================================
+   AFB Mangaan - Divine Narrative Stylesheet
+   Theme: Sacred Light & Divine Mystery
+   ============================================ */
+
+/* ------------------------------------
+   CSS Variables - Light/Dark Themes
+   ------------------------------------ */
+:root {
+    /* Sacred Color Palette - Light */
+    --bg: #faf9f6;
+    --bg-secondary: #f5f3ef;
+    --bg-tertiary: #ebe8e2;
+    --text: #1a1a1a;
+    --text-secondary: #4a4a4a;
+    --text-muted: #7a7a7a;
+    --accent: #c9a227;
+    --accent-light: #e0b83d;
+    --accent-dark: #a88420;
+    --divine-glow: rgba(201, 162, 39, 0.15);
+    --overlay-light: rgba(250, 249, 246, 0.9);
+    --overlay-dark: rgba(26, 26, 26, 0.6);
+    
+    /* Utility */
+    --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.12);
+    --shadow-strong: 0 12px 40px rgba(0, 0, 0, 0.18);
+    --radius: 12px;
+    --radius-lg: 20px;
+    --transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+    /* Sacred Color Palette - Dark */
+    --bg: #0d0d0d;
+    --bg-secondary: #161616;
+    --bg-tertiary: #1f1f1f;
+    --text: #f5f3ef;
+    --text-secondary: #b8b4ab;
+    --text-muted: #7a7569;
+    --accent: #e8d068;
+    --accent-light: #f0e08a;
+    --accent-dark: #c9a227;
+    --divine-glow: rgba(232, 208, 104, 0.1);
+    --overlay-light: rgba(13, 13, 13, 0.95);
+    --overlay-dark: rgba(0, 0, 0, 0.7);
+    
+    --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.5);
+    --shadow-strong: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Smooth theme transitions */
+*, *::before, *::after {
+    transition: background-color var(--transition),
+                color var(--transition),
+                border-color var(--transition),
+                box-shadow var(--transition);
+}
+
+/* Hardware acceleration for parallax */
+.parallax-layer,
+.hero__bg,
+.timeline__track {
+    will-change: transform;
+}
+
+/* ------------------------------------
+   Base Styles
+   ------------------------------------ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Typography */
+h1, h2, h3, .hero__title, .section__title, .quote__text {
+    font-family: 'Cinzel', Georgia, serif;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+/* ------------------------------------
+   Navigation
+   ------------------------------------ */
+.nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 3rem;
+    background: linear-gradient(to bottom, var(--bg) 0%, transparent 100%);
+    backdrop-filter: blur(10px);
+}
+
+.nav__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.nav__logo {
+    font-size: 1.75rem;
+    color: var(--accent);
+}
+
+.nav__title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.nav__actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.theme-toggle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--text-muted);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+}
+
+/* ------------------------------------
+   Sacred Seal - Pinned Guide
+   ------------------------------------ */
+.sacred-seal {
+    position: fixed;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%) translateX(150%);
+    z-index: 999;
+    background: var(--accent);
+    color: var(--bg);
+    padding: 1rem 1.25rem;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: var(--shadow-strong);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sacred-seal.visible {
+    transform: translateY(-50%) translateX(0);
+}
+
+.sacred-seal:hover {
+    transform: translateY(-50%) translateX(0) scale(1.05);
+    background: var(--accent-light);
+}
+
+.seal__content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.seal__icon {
+    font-size: 1.5rem;
+}
+
+.seal__text {
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+/* ------------------------------------
+   Buttons
+   ------------------------------------ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.75rem;
+    border-radius: var(--radius);
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 0.9375rem;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn--primary {
+    background: var(--accent);
+    color: var(--bg);
+}
+
+.btn--primary:hover {
+    background: var(--accent-light);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+.btn--light {
+    background: var(--text);
+    color: var(--bg);
+}
+
+.btn--light:hover {
+    background: var(--text-secondary);
+    transform: translateY(-2px);
+}
+
+.btn--outline {
+    background: transparent;
+    border: 1px solid var(--text);
+    color: var(--text);
+}
+
+.btn--outline:hover {
+    background: var(--text);
+    color: var(--bg);
+}
+
+.btn--large {
+    padding: 1.125rem 2.25rem;
+    font-size: 1rem;
+}
+
+/* ------------------------------------
+   Hero Section
+   ------------------------------------ */
+.hero {
+    position: relative;
+    height: 100vh;
+    min-height: 700px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.hero__bg-container {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+.hero__bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        var(--bg-secondary) 0%,
+        var(--bg-tertiary) 50%,
+        var(--bg) 100%
+    );
+    transform: scale(1.5);
+    transform-origin: center center;
+}
+
+.hero__bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+        radial-gradient(circle at 20% 80%, var(--divine-glow) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, var(--divine-glow) 0%, transparent 50%),
+        url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 0L100 50L50 100L0 50Z' fill='none' stroke='%23${var(--accent)}' stroke-opacity='0.03'/%3E%3C/svg%3E");
+    opacity: 0.6;
+}
+
+.hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        var(--overlay-light) 100%
+    );
+}
+
+.hero__content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    max-width: 800px;
+    padding: 0 2rem;
+}
+
+.hero__eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: 0.875rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.hero__title {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 600;
+    line-height: 1.15;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+}
+
+.hero__line {
+    display: block;
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(30px);
+}
+
+.hero__subtitle {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: var(--text-secondary);
+    max-width: 500px;
+    margin: 0 auto 2.5rem;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.hero__cta {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.hero__scroll-indicator {
+    position: absolute;
+    bottom: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    z-index: 1;
+}
+
+.scroll__text {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+
+.scroll__line {
+    width: 1px;
+    height: 60px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+}
+
+@keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(0.5); }
+    50% { opacity: 1; transform: scaleY(1); }
+}
+
+/* ------------------------------------
+   Quote Sections (Parallax)
+   ------------------------------------ */
+.quote-section {
+    position: relative;
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 6rem 2rem;
+}
+
+.quote-section--alternate {
+    background: var(--bg-secondary);
+}
+
+.quote-section--final {
+    min-height: 100vh;
+}
+
+.parallax-layer {
+    position: absolute;
+    inset: -20%;
+    z-index: 0;
+}
+
+.parallax-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.15;
+}
+
+.parallax-bg--1 {
+    background: 
+        radial-gradient(circle at 30% 70%, var(--accent) 0%, transparent 60%),
+        radial-gradient(circle at 70% 30%, var(--accent-dark) 0%, transparent 50%);
+}
+
+.parallax-bg--2 {
+    background: 
+        radial-gradient(ellipse at 50% 100%, var(--divine-glow) 0%, transparent 70%),
+        linear-gradient(180deg, transparent 0%, var(--bg-secondary) 100%);
+}
+
+.parallax-bg--3 {
+    background: 
+        conic-gradient(from 90deg at 50% 50%, transparent 0%, var(--divine-glow) 25%, transparent 50%);
+}
+
+.parallax-bg--4 {
+    background: 
+        radial-gradient(circle at 50% 50%, var(--accent) 0%, transparent 70%),
+        radial-gradient(circle at 20% 80%, var(--accent-dark) 0%, transparent 50%);
+    opacity: 0.08;
+}
+
+.quote__content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    max-width: 900px;
+}
+
+.quote__text {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-style: italic;
+    line-height: 1.6;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    transform: translateY(30px);
+    filter: blur(5px);
+}
+
+.quote__text--large {
+    font-size: clamp(1.75rem, 4.5vw, 3rem);
+}
+
+.quote__text--center {
+    text-align: center;
+}
+
+.quote__cite {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-style: normal;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.quote__divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    opacity: 0;
+}
+
+.divider__line {
+    width: 60px;
+    height: 1px;
+    background: var(--accent);
+}
+
+.divider__icon {
+    color: var(--accent);
+    font-size: 1.25rem;
+}
+
+/* ------------------------------------
+   Section Headers
+   ------------------------------------ */
+.section__header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.section__eyebrow {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.875rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 1rem;
+}
+
+.section__title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--text);
+    font-weight: 600;
+}
+
+/* ------------------------------------
+   Churches Section
+   ------------------------------------ */
+.churches-section {
+    padding: 8rem 2rem;
+    background: var(--bg);
+}
+
+.churches__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.church-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    opacity: 0;
+    transform: translateY(40px);
+}
+
+.church-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-strong);
+}
+
+.church-card__image {
+    height: 240px;
+    overflow: hidden;
+}
+
+.church-card__placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.church-card__placeholder--secondary {
+    background: linear-gradient(135deg, var(--text-secondary) 0%, var(--text-muted) 100%);
+}
+
+.church-card__placeholder i {
+    font-size: 4rem;
+    color: var(--bg);
+    opacity: 0.8;
+}
+
+.church-card__content {
+    padding: 2rem;
+}
+
+.church-card__label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+}
+
+.church-card__name {
+    font-size: 1.75rem;
+    color: var(--text);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.church-card__desc {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+}
+
+.church-card__meta {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.church-card__meta li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.church-card__meta i {
+    color: var(--accent);
+}
+
+/* ------------------------------------
+   Timeline Section (Horizontal Scroll)
+   ------------------------------------ */
+.timeline-section {
+    padding: 6rem 0;
+    background: var(--bg-secondary);
+    overflow: hidden;
+}
+
+.timeline__header {
+    text-align: center;
+    margin-bottom: 4rem;
+    padding: 0 2rem;
+}
+
+.timeline__container {
+    position: relative;
+    height: 500px;
+}
+
+.timeline__arrow {
+    position: absolute;
+    bottom: 2rem;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    cursor: pointer;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-medium);
+}
+
+.timeline__arrow:hover {
+    background: var(--accent);
+    color: var(--bg);
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(201, 162, 39, 0.4);
+}
+
+.timeline__arrow:active {
+    transform: scale(0.95);
+}
+
+.timeline__arrow--left {
+    left: 2rem;
+}
+
+.timeline__arrow--right {
+    right: 2rem;
+}
+
+.timeline__arrow:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    border-color: var(--text-muted);
+    color: var(--text-muted);
+}
+
+.timeline__arrow:disabled:hover {
+    background: var(--bg);
+    color: var(--text-muted);
+    transform: scale(1);
+    box-shadow: var(--shadow-medium);
+}
+
+@media (max-width: 768px) {
+    .timeline__arrow {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
+    }
+    
+    .timeline__arrow--left {
+        left: 0.5rem;
+    }
+    
+    .timeline__arrow--right {
+        right: 0.5rem;
+    }
+}
+
+.timeline__track {
+    display: flex;
+    gap: 4rem;
+    padding: 0 calc(50vw - 200px);
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    align-items: center;
+}
+
+.timeline__item {
+    flex-shrink: 0;
+    width: 400px;
+    text-align: center;
+    opacity: 1;
+    transform: translateX(0);
+    position: relative;
+    z-index: 1;
+}
+
+.timeline__year {
+    font-family: 'Cinzel', serif;
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    opacity: 0.8;
+    position: relative;
+    display: inline-block;
+    padding: 0 1rem;
+    background: var(--bg-secondary);
+    z-index: 2;
+}
+
+.timeline__card {
+    background: var(--bg);
+    padding: 2.5rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    position: relative;
+    z-index: 3;
+}
+
+.timeline__icon {
+    width: 60px;
+    height: 60px;
+    background: var(--divine-glow);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+}
+
+.timeline__icon i {
+    font-size: 1.75rem;
+    color: var(--accent);
+}
+
+.timeline__title {
+    font-size: 1.5rem;
+    color: var(--text);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.timeline__desc {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    font-size: 0.9375rem;
+}
+
+/* ------------------------------------
+   Ministries Section
+   ------------------------------------ */
+.ministries-section {
+    padding: 8rem 2rem;
+    background: var(--bg);
+}
+
+.ministries__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    /* Ensure only 2 rows are visible initially */
+    max-height: none;
+    overflow: visible;
+}
+
+.ministry-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Fallback for when animations don't load */
+.ministry-card:not(.animated) {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.ministry-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-medium);
+}
+
+.ministry-card__image {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+}
+
+.ministry-card__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.ministry-card:hover .ministry-card__image img {
+    transform: scale(1.05);
+}
+
+.ministry-card__content {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.ministry-card__title {
+    font-size: 1.25rem;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.ministry-card__desc {
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+}
+
+.activities-section {
+    padding: 4rem 0;
+    background: var(--bg-secondary);
+    min-height: 100vh;
+}
+
+.activities__container {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 8rem);
+    overflow: hidden;
+}
+
+.activities__track {
+    display: flex;
+    gap: 1rem;
+    height: 100%;
+    padding: 0 2rem;
+    will-change: transform;
+}
+
+.activity-card {
+    flex: 0 0 auto;
+    width: calc(100vw - 4rem);
+    height: 100%;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: #0b0b0b;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    position: relative;
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.activity-card__media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.activity-card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.05);
+    transition: transform 0.6s ease;
+}
+
+.activity-card__overlay {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(80% 60% at 30% 10%, rgba(232, 208, 104, 0.18), transparent 60%),
+        linear-gradient(to bottom, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.9) 100%);
+    pointer-events: none;
+}
+
+.activity-card__body {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 3rem 3.5rem;
+    z-index: 2;
+}
+
+.activity-card__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    color: rgba(245, 243, 239, 0.75);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.activity-card__tag {
+    color: rgba(232, 208, 104, 0.9);
+}
+
+.activity-card__title {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    color: #f5f3ef;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    line-height: 1.1;
+}
+
+.activity-card__desc {
+    color: rgba(245, 243, 239, 0.72);
+    font-size: 1.1rem;
+    line-height: 1.7;
+    max-width: 600px;
+}
+
+.activity-card:hover .activity-card__media img {
+    transform: scale(1.12);
+}
+
+.ministries__cta {
+    text-align: center;
+    margin-top: 3rem;
+}
+
+.ministries__cta .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Centered ministry card for single card display */
+.ministry-card--centered {
+    grid-column: 2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .ministries__grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+
+    .activities__container {
+        height: calc(100vh - 6rem);
+    }
+
+    .activities__track {
+        padding: 0 1rem;
+    }
+
+    .activity-card {
+        width: calc(100vw - 2rem);
+    }
+
+    .activity-card__body {
+        padding: 2rem 2rem;
+    }
+
+    .ministry-card--centered {
+        grid-column: 1;
+    }
+}
+
+@media (max-width: 480px) {
+    .ministries__grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .activities__container {
+        height: calc(100vh - 6rem);
+    }
+
+    .activities__track {
+        padding: 0 1rem;
+    }
+
+    .activity-card {
+        width: calc(100vw - 2rem);
+    }
+
+    .activity-card__body {
+        padding: 1.5rem 1.5rem;
+    }
+
+    .ministry-card--centered {
+        grid-column: 1;
+    }
+}
+
+/* ------------------------------------
+   CTA Section
+   ------------------------------------ */
+.cta-section {
+    padding: 8rem 2rem;
+    background: var(--bg-secondary);
+}
+
+.cta__content {
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.cta__eyebrow {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.875rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 1rem;
+}
+
+.cta__title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--text);
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+.cta__desc {
+    color: var(--text-secondary);
+    font-size: 1.125rem;
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+}
+
+.cta__actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+}
+
+.cta__info {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.info__item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.9375rem;
+}
+
+.info__item i {
+    color: var(--accent);
+}
+
+/* ------------------------------------
+   Footer
+   ------------------------------------ */
+.footer {
+    padding: 4rem 2rem;
+    background: var(--bg-tertiary);
+    text-align: center;
+}
+
+.footer__brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.footer__brand i {
+    font-size: 1.5rem;
+    color: var(--accent);
+}
+
+.footer__brand span {
+    font-family: 'Cinzel', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.footer__text {
+    color: var(--text-muted);
+    font-size: 0.9375rem;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+}
+
+.footer__socials {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.footer__socials a {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.footer__socials a:hover {
+    background: var(--accent);
+    color: var(--bg);
+    transform: translateY(-3px);
+}
+
+.footer__copyright {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+/* ------------------------------------
+   HOVER EFFECTS - Divine Interactions
+   ------------------------------------ */
+
+/* Button Hover Effects */
+.btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+.btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn--primary {
+    box-shadow: 0 4px 15px rgba(201, 162, 39, 0.3);
+}
+
+.btn--primary:hover {
+    box-shadow: 0 8px 30px rgba(201, 162, 39, 0.5), 0 0 20px rgba(201, 162, 39, 0.3);
+    transform: translateY(-3px) scale(1.02);
+}
+
+.btn--light:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    transform: translateY(-3px) scale(1.02);
+}
+
+.btn--outline:hover {
+    background: var(--text);
+    color: var(--bg);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    transform: translateY(-3px);
+}
+
+.btn i {
+    transition: transform 0.3s ease;
+}
+
+.btn:hover i {
+    transform: translateX(4px);
+}
+
+/* Navigation Hover Effects */
+.nav__brand {
+    position: relative;
+    cursor: pointer;
+}
+
+.nav__brand::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--accent);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav__brand:hover::after {
+    width: 100%;
+}
+
+.nav__brand:hover .nav__logo {
+    animation: divinePulse 2s ease-in-out infinite;
+}
+
+@keyframes divinePulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+/* Church Card Hover Effects */
+.church-card {
+    position: relative;
+}
+
+.church-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-lg);
+    padding: 2px;
+    background: linear-gradient(135deg, var(--accent), transparent, var(--accent-light));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.church-card:hover::before {
+    opacity: 1;
+}
+
+.church-card:hover {
+    transform: translateY(-12px) scale(1.02);
+    box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.15),
+        0 0 30px var(--divine-glow);
+}
+
+.church-card:hover .church-card__placeholder i {
+    animation: gentleFloat 3s ease-in-out infinite;
+}
+
+@keyframes gentleFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(5deg); }
+}
+
+.church-card__meta li {
+    transition: all 0.3s ease;
+}
+
+.church-card:hover .church-card__meta li {
+    color: var(--text);
+}
+
+.church-card:hover .church-card__meta li i {
+    transform: scale(1.2);
+    color: var(--accent-light);
+}
+
+/* Timeline Card Hover Effects */
+.timeline__card {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.timeline__card:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.1),
+        0 0 40px var(--divine-glow);
+}
+
+.timeline__card:hover .timeline__icon {
+    background: var(--accent);
+    transform: scale(1.1) rotate(10deg);
+}
+
+.timeline__card:hover .timeline__icon i {
+    color: var(--bg);
+}
+
+.timeline__year {
+    transition: all 0.4s ease;
+}
+
+.timeline__item:hover .timeline__year {
+    color: var(--accent-light);
+    text-shadow: 0 0 30px var(--divine-glow);
+    transform: scale(1.1);
+}
+
+/* Ministry Card Hover Effects */
+.ministry-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.ministry-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.6s ease;
+}
+
+.ministry-card:hover::before {
+    left: 100%;
+}
+
+.ministry-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.1),
+        0 0 25px var(--divine-glow);
+}
+
+.ministry-card:hover .ministry-card__icon {
+    background: var(--accent);
+    transform: scale(1.15) rotate(-5deg);
+    box-shadow: 0 0 20px rgba(201, 162, 39, 0.4);
+}
+
+.ministry-card:hover .ministry-card__icon i {
+    color: var(--bg);
+    animation: iconShimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes iconShimmer {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.ministry-card:hover .ministry-card__title {
+    color: var(--accent);
+}
+
+/* Quote Section Hover Effects */
+.quote__content {
+    transition: transform 0.4s ease;
+}
+
+.quote-section:hover .quote__content {
+    transform: scale(1.02);
+}
+
+.quote-section:hover .quote__text {
+    text-shadow: 0 0 40px var(--divine-glow);
+}
+
+.quote-section:hover .divider__icon {
+    animation: crossGlow 2s ease-in-out infinite;
+}
+
+@keyframes crossGlow {
+    0%, 100% { 
+        color: var(--accent);
+        filter: drop-shadow(0 0 5px var(--accent));
+    }
+    50% { 
+        color: var(--accent-light);
+        filter: drop-shadow(0 0 15px var(--accent-light));
+    }
+}
+
+.quote-section:hover .divider__line {
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+
+/* CTA Section Hover Effects */
+.cta-section .btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-section .btn--primary:hover {
+    box-shadow: 
+        0 10px 40px rgba(201, 162, 39, 0.4),
+        0 0 30px rgba(201, 162, 39, 0.2),
+        inset 0 0 20px rgba(255,255,255,0.1);
+}
+
+.cta-section .btn--outline:hover {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.info__item {
+    transition: all 0.3s ease;
+    cursor: default;
+}
+
+.info__item:hover {
+    transform: translateX(5px);
+    color: var(--text);
+}
+
+.info__item:hover i {
+    color: var(--accent-light);
+    transform: scale(1.2);
+}
+
+/* Sacred Seal Enhanced Hover */
+.sacred-seal:hover .seal__icon {
+    animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.1); }
+    50% { transform: scale(1); }
+    75% { transform: scale(1.1); }
+}
+
+.sacred-seal:hover {
+    box-shadow: 
+        0 10px 40px rgba(201, 162, 39, 0.4),
+        0 0 30px rgba(201, 162, 39, 0.3);
+}
+
+/* Footer Hover Effects */
+.footer__socials a {
+    position: relative;
+    overflow: hidden;
+}
+
+.footer__socials a::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    border-radius: 50%;
+    transform: scale(0);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.footer__socials a:hover::before {
+    transform: scale(1);
+}
+
+.footer__socials a:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(201, 162, 39, 0.3);
+}
+
+.footer__socials a i {
+    position: relative;
+    z-index: 1;
+    transition: color 0.3s ease;
+}
+
+.footer__socials a:hover i {
+    color: var(--bg);
+}
+
+/* Theme Toggle Hover */
+.theme-toggle:hover {
+    transform: rotate(15deg) scale(1.1);
+    box-shadow: 0 0 20px var(--divine-glow);
+}
+
+.theme-toggle:active {
+    transform: rotate(0deg) scale(0.95);
+}
+
+/* Hero Content Hover Effects */
+.hero__cta .btn:hover i {
+    animation: bounceDown 1s ease-in-out infinite;
+}
+
+@keyframes bounceDown {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(5px); }
+}
+
+/* Link Hover Effects in Text */
+a:not(.btn) {
+    position: relative;
+    color: var(--accent);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:not(.btn)::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--accent);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+a:not(.btn):hover {
+    color: var(--accent-light);
+}
+
+a:not(.btn):hover::after {
+    width: 100%;
+}
+
+/* Church Card Image Hover */
+.church-card__placeholder {
+    position: relative;
+    overflow: hidden;
+}
+
+.church-card__placeholder::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.2) 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.church-card:hover .church-card__placeholder::after {
+    opacity: 1;
+}
+
+/* Scroll Indicator Hover */
+.hero__scroll-indicator {
+    transition: opacity 0.3s ease;
+}
+
+.hero__scroll-indicator:hover {
+    opacity: 0.7;
+}
+
+.hero__scroll-indicator:hover .scroll__line {
+    animation-duration: 1s;
+}
+
+/* Section Header Hover */
+.section__header:hover .section__eyebrow {
+    letter-spacing: 0.3em;
+    color: var(--accent-light);
+}
+
+.section__eyebrow {
+    transition: letter-spacing 0.4s ease, color 0.3s ease;
+}
+
+/* Timeline Track - Removed hover dimming effect that was interfering with arrow buttons */
+
+.timeline__item {
+    transition: all 0.4s ease;
+}
+
+.timeline__item:hover {
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    .nav {
+        padding: 1rem 1.5rem;
+    }
+    
+    .nav__title {
+        display: none;
+    }
+    
+    .sacred-seal {
+        right: 1rem;
+        padding: 0.75rem 1rem;
+    }
+    
+    .seal__text {
+        display: none;
+    }
+    
+    .hero {
+        min-height: 100svh;
+    }
+    
+    .hero__content {
+        padding: 0 1.5rem;
+    }
+    
+    .churches__grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .timeline__item {
+        width: 300px;
+    }
+    
+    .timeline__year {
+        font-size: 3rem;
+    }
+    
+    .timeline__card {
+        padding: 1.5rem;
+    }
+    
+    .ministries__grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .cta__actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn--large {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .parallax-layer,
+    .hero__bg,
+    .timeline__track {
+        will-change: auto;
+    }
+}

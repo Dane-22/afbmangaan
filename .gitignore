@@ -43,3 +43,6 @@ desktop.ini
 # Uploads (if any)
 /uploads/
 /temp/
+
+.vercel
+.env*.local

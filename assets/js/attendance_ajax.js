@@ -42,7 +42,7 @@
     function searchAttendees(query) {
         const searchResults = document.getElementById('searchResults');
         
-        fetch(`api/search_attendees.php?q=${encodeURIComponent(query)}`)
+        fetch(`/afb_mangaan_php/api/search_attendees.php?q=${encodeURIComponent(query)}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.attendees) {
@@ -67,7 +67,7 @@
         searchResults.innerHTML = attendees.map(attendee => `
             <div class="search-result-item" data-id="${attendee.id}" data-name="${attendee.fullname}">
                 <div class="result-name">${attendee.fullname}</div>
-                <div class="result-meta">${attendee.category} • ${attendee.qr_token}</div>
+                <div class="result-meta">${attendee.category} • ID: ${attendee.member_id || 'N/A'}</div>
             </div>
         `).join('');
         
@@ -103,7 +103,7 @@
         formData.append('status', status);
         formData.append('method', method);
         
-        return fetch('api/record_attendance.php', {
+        return fetch('/afb_mangaan_php/api/record_attendance.php', {
             method: 'POST',
             body: formData
         })
@@ -134,7 +134,7 @@
         const listContainer = document.getElementById('attendanceList');
         if (!listContainer) return;
         
-        fetch(`api/get_attendance.php?event_id=${eventId}`)
+        fetch(`/afb_mangaan_php/api/get_attendance.php?event_id=${eventId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -173,7 +173,7 @@
     function deleteAttendance(attendanceId) {
         if (!confirm('Are you sure you want to delete this attendance record?')) return;
         
-        fetch(`api/delete_attendance.php?id=${attendanceId}`, { method: 'POST' })
+        fetch(`/afb_mangaan_php/api/delete_attendance.php?id=${attendanceId}`, { method: 'DELETE' })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -189,91 +189,6 @@
                 console.error('Delete error:', error);
                 showToast('An error occurred', 'error');
             });
-    }
-
-    // QR Code Scanner
-    let qrScanner = null;
-
-    function initQRScanner() {
-        const scannerContainer = document.getElementById('qrScanner');
-        if (!scannerContainer) return;
-        
-        const startBtn = document.getElementById('startQRScan');
-        const stopBtn = document.getElementById('stopQRScan');
-        
-        if (startBtn) {
-            startBtn.addEventListener('click', startQRScan);
-        }
-        
-        if (stopBtn) {
-            stopBtn.addEventListener('click', stopQRScan);
-        }
-    }
-
-    function startQRScan() {
-        const scannerContainer = document.getElementById('qrScanner');
-        if (!scannerContainer) return;
-        
-        qrScanner = new Html5Qrcode("qrScanner");
-        
-        qrScanner.start(
-            { facingMode: "environment" },
-            {
-                fps: 10,
-                qrbox: { width: 250, height: 250 }
-            },
-            onQRScanSuccess,
-            onQRScanFailure
-        ).then(() => {
-            showToast('QR Scanner started', 'info');
-            document.getElementById('qrScannerFrame')?.classList.add('active');
-        }).catch(err => {
-            console.error('QR Scanner error:', err);
-            showToast('Failed to start QR scanner. Please ensure camera access is allowed.', 'error');
-        });
-    }
-
-    function stopQRScan() {
-        if (qrScanner) {
-            qrScanner.stop().then(() => {
-                showToast('QR Scanner stopped', 'info');
-                document.getElementById('qrScannerFrame')?.classList.remove('active');
-            }).catch(err => {
-                console.error('Stop error:', err);
-            });
-        }
-    }
-
-    function onQRScanSuccess(decodedText) {
-        // Stop scanner after successful scan
-        stopQRScan();
-        
-        // Process QR code
-        const eventId = document.getElementById('eventId')?.value;
-        if (!eventId) {
-            showToast('No active event selected', 'error');
-            return;
-        }
-        
-        // Look up attendee by QR token
-        fetch(`api/get_attendee_by_qr.php?token=${encodeURIComponent(decodedText)}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.attendee) {
-                    recordAttendance(eventId, data.attendee.id, 'Present', 'QR Scan');
-                } else {
-                    showToast('Invalid QR code or member not found', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('QR lookup error:', error);
-                showToast('Error processing QR code', 'error');
-            });
-    }
-
-    function onQRScanFailure(error) {
-        // QR scan failures are normal when no code is in view
-        // console.warn(`QR error = ${error}`);
     }
 
     // Confetti effect for successful attendance
@@ -298,7 +213,6 @@
     // Initialize on DOM ready
     document.addEventListener('DOMContentLoaded', function() {
         initLiveSearch();
-        initQRScanner();
     });
 
     // Expose API
@@ -306,8 +220,6 @@
         search: searchAttendees,
         record: recordAttendance,
         refresh: refreshAttendanceList,
-        delete: deleteAttendance,
-        startQR: startQRScan,
-        stopQR: stopQRScan
+        delete: deleteAttendance
     };
 })();
