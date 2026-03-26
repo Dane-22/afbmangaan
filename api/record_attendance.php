@@ -26,6 +26,19 @@ try {
     }
 
     $result = recordAttendance($event_id, $attendee_id, $status, $method, $notes);
+    
+    // Get the log_time for the recorded attendance
+    if ($result['success']) {
+        $pdo = getDB();
+        $stmt = $pdo->prepare("SELECT log_time FROM attendance_logs WHERE event_id = ? AND attendee_id = ? ORDER BY log_time DESC LIMIT 1");
+        $stmt->execute([$event_id, $attendee_id]);
+        $record = $stmt->fetch();
+        if ($record) {
+            $result['log_time'] = $record['log_time'];
+            $result['time_formatted'] = date('h:i A', strtotime($record['log_time']));
+        }
+    }
+    
     echo json_encode($result);
 
 } catch (Exception $e) {

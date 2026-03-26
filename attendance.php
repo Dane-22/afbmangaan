@@ -144,7 +144,7 @@ $todayEvent = getTodayEvent();
                     <thead>
                         <tr>
                             <th style="width: 50px;">#</th>
-                            <th>Employee</th>
+                            <th>Member</th>
                             <th style="width: 240px;">Actions</th>
                         </tr>
                     </thead>
@@ -152,13 +152,14 @@ $todayEvent = getTodayEvent();
                         <?php foreach ($members as $index => $member): 
                             $record = $attendanceMap[$member['id']] ?? null;
                             $status = $record ? $record['status'] : null;
+                            $timeIn = $record && $record['log_time'] ? date('h:i A', strtotime($record['log_time'])) : null;
                             $rowClass = '';
                             if ($status === 'Present') $rowClass = 'style="background: rgba(34, 197, 94, 0.05);"';
                             elseif ($status === 'Absent') $rowClass = 'style="background: rgba(239, 68, 68, 0.05);"';
                         ?>
                             <tr id="member-row-<?php echo $member['id']; ?>" <?php echo $rowClass; ?>>
                                 <td data-label="#"><?php echo $index + 1; ?></td>
-                                <td data-label="Employee">
+                                <td data-label="Member">
                                     <div style="display: flex; align-items: center; gap: 0.75rem;">
                                         <div class="member-avatar" style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">
                                             <?php echo strtoupper(substr($member['fullname'], 0, 2)); ?>
@@ -173,21 +174,24 @@ $todayEvent = getTodayEvent();
                                     <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
                                         <?php if ($status !== 'Absent'): ?>
                                             <button class="btn btn-sm" onclick="quickMark(<?php echo $member['id']; ?>, 'Absent')" id="btn-absent-<?php echo $member['id']; ?>" style="background: #dc2626; color: white; border: none; padding: 0.4rem 0.75rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;">
-                                                <i class="ph ph-x-circle"></i> Mark Absent
+                                                <i class="ph ph-x-circle"></i> Absent
                                             </button>
                                         <?php else: ?>
-                                            <button class="btn btn-sm" disabled style="background: #dc2626; color: white; border: none; padding: 0.4rem 0.75rem; font-size: 0.75rem; opacity: 0.4; display: flex; align-items: center; gap: 0.25rem;">
-                                                <i class="ph ph-x-circle"></i> Mark Absent
-                                            </button>
+                                            <span class="status-badge status-absent" style="padding: 0.4rem 0.75rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;">
+                                                <i class="ph ph-x-circle"></i> Absent
+                                            </span>
                                         <?php endif; ?>
                                         
-                                        <?php if ($status !== 'Present'): ?>
-                                            <button class="btn btn-sm" onclick="quickMark(<?php echo $member['id']; ?>, 'Present')" id="btn-present-<?php echo $member['id']; ?>" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.75rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;">
-                                                <i class="ph ph-check-circle"></i> Mark Present
-                                            </button>
+                                        <?php if ($status === 'Present'): ?>
+                                            <span class="status-badge status-present" style="padding: 0.4rem 0.75rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem; flex-direction: column; line-height: 1.2;">
+                                                <span style="display: flex; align-items: center; gap: 0.25rem;"><i class="ph ph-check-circle"></i> Present</span>
+                                                <?php if ($timeIn): ?>
+                                                    <small style="font-size: 0.65rem; opacity: 0.9;"><?php echo $timeIn; ?></small>
+                                                <?php endif; ?>
+                                            </span>
                                         <?php else: ?>
-                                            <button class="btn btn-sm" disabled style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.75rem; font-size: 0.75rem; opacity: 0.4; display: flex; align-items: center; gap: 0.25rem;">
-                                                <i class="ph ph-check-circle"></i> Mark Present
+                                            <button class="btn btn-sm" onclick="quickMark(<?php echo $member['id']; ?>, 'Present')" id="btn-present-<?php echo $member['id']; ?>" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.75rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;">
+                                                <i class="ph ph-clock-in"></i> Time In
                                             </button>
                                         <?php endif; ?>
                                     </div>
@@ -203,6 +207,7 @@ $todayEvent = getTodayEvent();
                 <?php foreach ($members as $index => $member): 
                     $record = $attendanceMap[$member['id']] ?? null;
                     $status = $record ? $record['status'] : null;
+                    $timeIn = $record && $record['log_time'] ? date('h:i A', strtotime($record['log_time'])) : null;
                     $cardBorder = '';
                     if ($status === 'Present') $cardBorder = 'border-left: 4px solid #16a34a;';
                     elseif ($status === 'Absent') $cardBorder = 'border-left: 4px solid #dc2626;';
@@ -218,6 +223,9 @@ $todayEvent = getTodayEvent();
                                 <?php if ($status): ?>
                                     <span class="status-badge <?php echo $status === 'Present' ? 'status-present' : 'status-absent'; ?>">
                                         <?php echo $status; ?>
+                                        <?php if ($status === 'Present' && $timeIn): ?>
+                                            <small style="display: block; font-size: 0.7rem; opacity: 0.9; margin-top: 1px;"><?php echo $timeIn; ?></small>
+                                        <?php endif; ?>
                                     </span>
                                 <?php endif; ?>
                             </div>
@@ -228,18 +236,21 @@ $todayEvent = getTodayEvent();
                                     <i class="ph ph-x-circle"></i> Absent
                                 </button>
                             <?php else: ?>
-                                <button class="btn btn-absent" disabled>
+                                <span class="btn btn-absent" style="opacity: 1; cursor: default;">
                                     <i class="ph ph-x-circle"></i> Absent
-                                </button>
+                                </span>
                             <?php endif; ?>
                             
-                            <?php if ($status !== 'Present'): ?>
-                                <button class="btn btn-present" onclick="quickMark(<?php echo $member['id']; ?>, 'Present')" id="btn-present-card-<?php echo $member['id']; ?>">
-                                    <i class="ph ph-check-circle"></i> Present
-                                </button>
+                            <?php if ($status === 'Present'): ?>
+                                <span class="btn btn-present" style="opacity: 1; cursor: default; flex-direction: column; line-height: 1.2;">
+                                    <span><i class="ph ph-check-circle"></i> Present</span>
+                                    <?php if ($timeIn): ?>
+                                        <small style="font-size: 0.7rem; opacity: 0.9;"><?php echo $timeIn; ?></small>
+                                    <?php endif; ?>
+                                </span>
                             <?php else: ?>
-                                <button class="btn btn-present" disabled>
-                                    <i class="ph ph-check-circle"></i> Present
+                                <button class="btn btn-present" onclick="quickMark(<?php echo $member['id']; ?>, 'Present')" id="btn-present-card-<?php echo $member['id']; ?>">
+                                    <i class="ph ph-clock-in"></i> Time In
                                 </button>
                             <?php endif; ?>
                         </div>
@@ -272,78 +283,260 @@ function toggleQR() {
     qrPanel.style.display = qrPanel.style.display === 'none' ? 'block' : 'none';
 }
 
+// Simple toast notification function
+function showToast(message, type = 'info') {
+    // Remove existing toasts
+    const existing = document.querySelector('.attendance-toast');
+    if (existing) existing.remove();
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'attendance-toast';
+    
+    // Colors based on type
+    const colors = {
+        success: '#16a34a',
+        error: '#dc2626',
+        warning: '#f59e0b',
+        info: '#3b82f6'
+    };
+    const color = colors[type] || colors.info;
+    
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${color};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 9999;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 200px;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    // Add icon based on type
+    const icons = {
+        success: '✓',
+        error: '✕',
+        warning: '⚠',
+        info: 'ℹ'
+    };
+    
+    toast.innerHTML = `<span>${icons[type] || 'ℹ'}</span> ${message}`;
+    
+    // Add animation styles
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    if (!document.querySelector('#toast-styles')) {
+        style.id = 'toast-styles';
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(toast);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
 function quickMark(attendeeId, status) {
+    console.log(`quickMark called - attendeeId: ${attendeeId}, status: ${status}`);
+    
     const eventId = document.getElementById('eventId')?.value;
+    console.log('eventId:', eventId);
     
     if (!eventId) {
         showToast('Please select an event first', 'warning');
         return;
     }
     
-    // Disable buttons during request
-    const btnAbsent = document.getElementById('btn-absent-' + attendeeId);
-    const btnPresent = document.getElementById('btn-present-' + attendeeId);
-    if (btnAbsent) btnAbsent.disabled = true;
-    if (btnPresent) btnPresent.disabled = true;
+    // Find and disable all buttons for this attendee (both desktop and mobile)
+    const selector = `[id^="btn-absent-${attendeeId}"], [id^="btn-present-${attendeeId}"], [id^="btn-absent-card-${attendeeId}"], [id^="btn-present-card-${attendeeId}"]`;
+    console.log('Button selector:', selector);
+    
+    const buttons = document.querySelectorAll(selector);
+    console.log(`Found ${buttons.length} buttons to disable:`, buttons);
+    
+    buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        btn.style.cursor = 'not-allowed';
+    });
+    
+    const body = `event_id=${eventId}&attendee_id=${attendeeId}&status=${status}&method=Manual`;
+    console.log('Request body:', body);
     
     fetch('/afb_mangaan_php/api/record_attendance.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `event_id=${eventId}&attendee_id=${attendeeId}&status=${status}&method=Manual`
+        body: body
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('API Response:', data);
         if (data.success) {
             showToast(`Marked ${status}`, 'success');
-            updateRowStatus(attendeeId, status);
+            console.log('Calling updateRowStatus with:', attendeeId, status, data.time_formatted);
+            updateRowStatus(attendeeId, status, data.time_formatted);
         } else {
             showToast(data.message || 'Failed to record attendance', 'error');
-            if (btnAbsent) btnAbsent.disabled = false;
-            if (btnPresent) btnPresent.disabled = false;
+            // Re-enable buttons on error
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '';
+                btn.style.cursor = '';
+            });
         }
     })
     .catch(error => {
         console.error('Attendance error:', error);
-        showToast('An error occurred', 'error');
-        if (btnAbsent) btnAbsent.disabled = false;
-        if (btnPresent) btnPresent.disabled = false;
+        showToast('An error occurred. Please try again.', 'error');
+        // Re-enable buttons on error
+        buttons.forEach(btn => {
+            btn.disabled = false;
+            btn.style.opacity = '';
+            btn.style.cursor = '';
+        });
     });
 }
 
-function updateRowStatus(attendeeId, status) {
+function updateRowStatus(attendeeId, status, timeFormatted) {
+    console.log('updateRowStatus called:', { attendeeId, status, timeFormatted });
+    
     const row = document.getElementById('member-row-' + attendeeId);
+    console.log('Found row:', row);
     
-    if (status === 'Present') {
-        row.style.background = 'rgba(34, 197, 94, 0.05)';
+    if (!row) {
+        console.error('Row not found for attendee:', attendeeId);
     } else {
-        row.style.background = 'rgba(239, 68, 68, 0.05)';
-    }
-    
-    const btnAbsent = document.getElementById('btn-absent-' + attendeeId);
-    const btnPresent = document.getElementById('btn-present-' + attendeeId);
-    
-    const actionCell = btnAbsent?.parentElement;
-    if (actionCell) {
+        // Update row background
         if (status === 'Present') {
-            actionCell.innerHTML = `
-                <button class="btn btn-sm" onclick="quickMark(${attendeeId}, 'Absent')" id="btn-absent-${attendeeId}" style="background: #dc2626; color: white; border: none; padding: 0.4rem 0.75rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;">
-                    <i class="ph ph-x-circle"></i> Mark Absent
-                </button>
-                <button class="btn btn-sm" disabled style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.75rem; font-size: 0.75rem; opacity: 0.4; display: flex; align-items: center; gap: 0.25rem;">
-                    <i class="ph ph-check-circle"></i> Mark Present
-                </button>
-            `;
+            row.style.background = 'rgba(34, 197, 94, 0.05)';
         } else {
-            actionCell.innerHTML = `
-                <button class="btn btn-sm" disabled style="background: #dc2626; color: white; border: none; padding: 0.4rem 0.75rem; font-size: 0.75rem; opacity: 0.4; display: flex; align-items: center; gap: 0.25rem;">
-                    <i class="ph ph-x-circle"></i> Mark Absent
-                </button>
-                <button class="btn btn-sm" onclick="quickMark(${attendeeId}, 'Present')" id="btn-present-${attendeeId}" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.75rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;">
-                    <i class="ph ph-check-circle"></i> Mark Present
-                </button>
-            `;
+            row.style.background = 'rgba(239, 68, 68, 0.05)';
+        }
+        
+        // Find action cell - try multiple selectors for robustness
+        let actionCell = row.querySelector('td[data-label="Actions"] > div');
+        if (!actionCell) {
+            const tds = row.querySelectorAll('td');
+            if (tds.length >= 3) {
+                actionCell = tds[tds.length - 1].querySelector('div');
+            }
+        }
+        console.log('Found actionCell:', actionCell);
+        
+        if (actionCell) {
+            try {
+                if (status === 'Present') {
+                    const timeHtml = timeFormatted ? `<small style="font-size: 0.65rem; opacity: 0.9;">${timeFormatted}</small>` : '';
+                    actionCell.innerHTML = `
+                        <button class="btn btn-sm" onclick="quickMark(${attendeeId}, 'Absent')" id="btn-absent-${attendeeId}" style="background: #dc2626; color: white; border: none; padding: 0.4rem 0.75rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;">
+                            <i class="ph ph-x-circle"></i> Absent
+                        </button>
+                        <span class="status-badge status-present" style="padding: 0.4rem 0.75rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem; flex-direction: column; line-height: 1.2;">
+                            <span style="display: flex; align-items: center; gap: 0.25rem;"><i class="ph ph-check-circle"></i> Present</span>
+                            ${timeHtml}
+                        </span>
+                    `;
+                } else {
+                    actionCell.innerHTML = `
+                        <span class="status-badge status-absent" style="padding: 0.4rem 0.75rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;">
+                            <i class="ph ph-x-circle"></i> Absent
+                        </span>
+                        <button class="btn btn-sm" onclick="quickMark(${attendeeId}, 'Present')" id="btn-present-${attendeeId}" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.75rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;">
+                            <i class="ph ph-clock-in"></i> Time In
+                        </button>
+                    `;
+                }
+                console.log('Desktop action cell updated successfully');
+            } catch (e) {
+                console.error('Error updating action cell:', e);
+            }
+        } else {
+            console.error('Action cell not found in row');
         }
     }
+    
+    // Update mobile card view
+    const card = document.getElementById('member-card-' + attendeeId);
+    console.log('Found mobile card:', card);
+    
+    if (card) {
+        try {
+            const cardActions = card.querySelector('.member-grid-actions');
+            if (cardActions) {
+                if (status === 'Present') {
+                    const timeHtml = timeFormatted ? `<small style="font-size: 0.7rem; opacity: 0.9;">${timeFormatted}</small>` : '';
+                    cardActions.innerHTML = `
+                        <button class="btn btn-absent" onclick="quickMark(${attendeeId}, 'Absent')" id="btn-absent-card-${attendeeId}">
+                            <i class="ph ph-x-circle"></i> Absent
+                        </button>
+                        <span class="btn btn-present" style="opacity: 1; cursor: default; flex-direction: column; line-height: 1.2;">
+                            <span><i class="ph ph-check-circle"></i> Present</span>
+                            ${timeHtml}
+                        </span>
+                    `;
+                    card.style.borderLeft = '4px solid #16a34a';
+                } else {
+                    cardActions.innerHTML = `
+                        <span class="btn btn-absent" style="opacity: 1; cursor: default;">
+                            <i class="ph ph-x-circle"></i> Absent
+                        </span>
+                        <button class="btn btn-present" onclick="quickMark(${attendeeId}, 'Present')" id="btn-present-card-${attendeeId}">
+                            <i class="ph ph-clock-in"></i> Time In
+                        </button>
+                    `;
+                    card.style.borderLeft = '4px solid #dc2626';
+                }
+                console.log('Mobile card updated successfully');
+            }
+            
+            // Update or add status badge in card header
+            const cardInfo = card.querySelector('.member-grid-info');
+            if (cardInfo) {
+                let statusBadge = cardInfo.querySelector('.status-badge');
+                if (!statusBadge) {
+                    statusBadge = document.createElement('span');
+                    statusBadge.className = 'status-badge';
+                    cardInfo.appendChild(statusBadge);
+                }
+                const timeHtml = (status === 'Present' && timeFormatted) ? `<small style="display: block; font-size: 0.7rem; opacity: 0.9; margin-top: 1px;">${timeFormatted}</small>` : '';
+                statusBadge.className = `status-badge ${status === 'Present' ? 'status-present' : 'status-absent'}`;
+                statusBadge.innerHTML = `${status}${timeHtml}`;
+            }
+        } catch (e) {
+            console.error('Error updating mobile card:', e);
+        }
+    }
+    
+    // Force a reflow to ensure changes are rendered
+    document.body.offsetHeight;
+    console.log('UI update complete');
 }
 
 function markAllPresent() {
@@ -376,7 +569,7 @@ function markAllPresent() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    updateRowStatus(attendeeId, 'Present');
+                    updateRowStatus(attendeeId, 'Present', data.time_formatted);
                     processed++;
                     if (processed === total) {
                         showToast(`Marked ${processed} members as Present`, 'success');

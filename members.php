@@ -90,7 +90,7 @@ $stmt->execute($params);
 $members = $stmt->fetchAll();
 
 // Get categories for filter
-$categories = ['MCYO', 'WMO', 'CCMO', 'KIDS'];
+$categories = ['MCYO', 'WMO', 'CCMO', 'KIDS', 'Visitors', 'Other'];
 
 // Check if adding/editing
 $editMode = false;
@@ -155,86 +155,13 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add';
                 <i class="ph ph-funnel"></i> Filter
             </button>
             
-            <a href="?action=add" class="btn btn-success">
+            <button type="button" class="btn btn-success" onclick="openMemberModal()">
                 <i class="ph ph-plus"></i> Add Member
-            </a>
+            </button>
         </form>
     </div>
 </div>
 
-<?php if ($addMode || $editMode): ?>
-    <!-- Add/Edit Form -->
-    <div class="card animate__animated animate__fadeIn" style="margin-top: 1.5rem;">
-        <div class="card-header">
-            <h3 class="card-title">
-                <i class="ph ph-user<?php echo $editMode ? '' : '-plus'; ?>"></i>
-                <?php echo $editMode ? 'Edit Member' : 'Add New Member'; ?>
-            </h3>
-        </div>
-        <div class="card-body">
-            <form method="POST" action="">
-                <input type="hidden" name="action" value="<?php echo $editMode ? 'edit' : 'add'; ?>">
-                <?php if ($editMode): ?>
-                    <input type="hidden" name="id" value="<?php echo $editMember['id']; ?>">
-                <?php endif; ?>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div class="form-group">
-                        <label class="form-label">Full Name *</label>
-                        <input type="text" name="fullname" class="form-control" required 
-                               value="<?php echo $editMode ? htmlspecialchars($editMember['fullname']) : ''; ?>">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Category *</label>
-                        <select name="category" class="form-control form-select" required>
-                            <?php foreach ($categories as $cat): ?>
-                                <option value="<?php echo $cat; ?>" <?php echo ($editMode && $editMember['category'] === $cat) ? 'selected' : ''; ?>>
-                                    <?php echo $cat; ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Contact Number</label>
-                        <input type="text" name="contact" class="form-control" 
-                               value="<?php echo $editMode ? htmlspecialchars($editMember['contact']) : ''; ?>">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control" 
-                               value="<?php echo $editMode ? htmlspecialchars($editMember['email']) : ''; ?>">
-                    </div>
-                </div>
-                
-                <?php if ($editMode): ?>
-                    <div class="form-group" style="margin-top: 1rem;">
-                        <label class="form-label">Status</label>
-                        <select name="status" class="form-control form-select">
-                            <option value="Active" <?php echo $editMember['status'] === 'Active' ? 'selected' : ''; ?>>Active</option>
-                            <option value="Archived" <?php echo $editMember['status'] === 'Archived' ? 'selected' : ''; ?>>Archived</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">QR Token</label>
-                        <input type="text" class="form-control" value="<?php echo $editMember['qr_token']; ?>" readonly>
-                        <small style="color: var(--text-muted);">QR Token is auto-generated</small>
-                    </div>
-                <?php endif; ?>
-                
-                <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="ph ph-floppy-disk"></i> Save Member
-                    </button>
-                    <a href="members.php" class="btn btn-secondary">Cancel</a>
-                </div>
-            </form>
-        </div>
-    </div>
-<?php endif; ?>
 
 <!-- Members List -->
 <div class="card animate__animated animate__fadeInUp" style="margin-top: 1.5rem;">
@@ -285,9 +212,17 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add';
                             </td>
                             <td data-label="Actions">
                                 <div style="display: flex; gap: 0.5rem;">
-                                    <a href="?edit=<?php echo $member['id']; ?>" class="btn btn-sm btn-secondary" title="Edit">
+                                    <button type="button" class="btn btn-sm btn-secondary" title="Edit" 
+                                            data-id="<?php echo $member['id']; ?>"
+                                            data-fullname="<?php echo htmlspecialchars($member['fullname'], ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-category="<?php echo $member['category']; ?>"
+                                            data-contact="<?php echo htmlspecialchars($member['contact'], ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-email="<?php echo htmlspecialchars($member['email'], ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-status="<?php echo $member['status']; ?>"
+                                            data-qr="<?php echo $member['qr_token']; ?>"
+                                            onclick="openEditModalFromButton(this)">
                                         <i class="ph ph-pencil"></i>
-                                    </a>
+                                    </button>
                                     <form method="POST" style="display: inline;" onsubmit="return confirm('Archive this member?');">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="id" value="<?php echo $member['id']; ?>">
@@ -338,9 +273,17 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add';
                         <?php endif; ?>
                     </div>
                     <div class="member-grid-actions">
-                        <a href="?edit=<?php echo $member['id']; ?>" class="btn btn-edit">
+                        <button type="button" class="btn btn-edit"
+                                data-id="<?php echo $member['id']; ?>"
+                                data-fullname="<?php echo htmlspecialchars($member['fullname'], ENT_QUOTES, 'UTF-8'); ?>"
+                                data-category="<?php echo $member['category']; ?>"
+                                data-contact="<?php echo htmlspecialchars($member['contact'], ENT_QUOTES, 'UTF-8'); ?>"
+                                data-email="<?php echo htmlspecialchars($member['email'], ENT_QUOTES, 'UTF-8'); ?>"
+                                data-status="<?php echo $member['status']; ?>"
+                                data-qr="<?php echo $member['qr_token']; ?>"
+                                onclick="openEditModalFromButton(this)">
                             <i class="ph ph-pencil"></i> Edit
-                        </a>
+                        </button>
                         <form method="POST" style="display: contents;" onsubmit="return confirm('Archive this member?');">
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="<?php echo $member['id']; ?>">
@@ -354,5 +297,263 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add';
         </div>
     </div>
 </div>
+
+<!-- Add Member Modal -->
+<div id="addMemberModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="modal-content" style="background: var(--card-bg); border-radius: var(--radius-lg); max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <div class="modal-header" style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem;">
+                <i class="ph ph-user-plus" style="color: var(--primary);"></i>
+                Add New Member
+            </h3>
+            <button type="button" onclick="closeMemberModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s;">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+        <form method="POST" action="" id="addMemberForm">
+            <div class="modal-body" style="padding: 1.5rem;">
+                <input type="hidden" name="action" value="add">
+                
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.25rem;">
+                        <i class="ph ph-user" style="color: var(--primary);"></i>
+                        Full Name *
+                    </label>
+                    <input type="text" name="fullname" class="form-control" required 
+                           placeholder="Enter member's full name"
+                           style="padding: 0.75rem; border-radius: var(--radius-md);">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.25rem;">
+                        <i class="ph ph-users-three" style="color: var(--primary);"></i>
+                        Category *
+                    </label>
+                    <select name="category" class="form-control form-select" required
+                            style="padding: 0.75rem; border-radius: var(--radius-md);">
+                        <option value="">Select Category</option>
+                        <?php foreach ($categories as $cat): ?>
+                            <option value="<?php echo $cat; ?>"><?php echo $cat; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.25rem;">
+                        <i class="ph ph-phone" style="color: var(--primary);"></i>
+                        Contact Number
+                    </label>
+                    <input type="text" name="contact" class="form-control" 
+                           placeholder="e.g., 09123456789"
+                           style="padding: 0.75rem; border-radius: var(--radius-md);">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.25rem;">
+                        <i class="ph ph-envelope" style="color: var(--primary);"></i>
+                        Email
+                    </label>
+                    <input type="email" name="email" class="form-control" 
+                           placeholder="e.g., member@email.com"
+                           style="padding: 0.75rem; border-radius: var(--radius-md);">
+                </div>
+                
+                <div style="background: rgba(99, 102, 241, 0.1); padding: 1rem; border-radius: var(--radius-md); margin-top: 1rem;">
+                    <p style="margin: 0; font-size: 0.875rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="ph ph-info" style="color: var(--primary);"></i>
+                        QR Code will be auto-generated when you save.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeMemberModal()">
+                    <i class="ph ph-x"></i> Cancel
+                </button>
+                <button type="submit" class="btn btn-success">
+                    <i class="ph ph-check"></i> Save Member
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Member Modal -->
+<div id="editMemberModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="modal-content" style="background: var(--card-bg); border-radius: var(--radius-lg); max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <div class="modal-header" style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem;">
+                <i class="ph ph-user-gear" style="color: var(--primary);"></i>
+                Edit Member
+            </h3>
+            <button type="button" onclick="closeEditModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s;">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+        <form method="POST" action="" id="editMemberForm">
+            <div class="modal-body" style="padding: 1.5rem;">
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="id" id="edit_id">
+                
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.25rem;">
+                        <i class="ph ph-user" style="color: var(--primary);"></i>
+                        Full Name *
+                    </label>
+                    <input type="text" name="fullname" id="edit_fullname" class="form-control" required 
+                           style="padding: 0.75rem; border-radius: var(--radius-md);">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.25rem;">
+                        <i class="ph ph-users-three" style="color: var(--primary);"></i>
+                        Category *
+                    </label>
+                    <select name="category" id="edit_category" class="form-control form-select" required
+                            style="padding: 0.75rem; border-radius: var(--radius-md);">
+                        <?php foreach ($categories as $cat): ?>
+                            <option value="<?php echo $cat; ?>"><?php echo $cat; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.25rem;">
+                        <i class="ph ph-phone" style="color: var(--primary);"></i>
+                        Contact Number
+                    </label>
+                    <input type="text" name="contact" id="edit_contact" class="form-control" 
+                           style="padding: 0.75rem; border-radius: var(--radius-md);">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.25rem;">
+                        <i class="ph ph-envelope" style="color: var(--primary);"></i>
+                        Email
+                    </label>
+                    <input type="email" name="email" id="edit_email" class="form-control" 
+                           style="padding: 0.75rem; border-radius: var(--radius-md);">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.25rem;">
+                        <i class="ph ph-toggle-left" style="color: var(--primary);"></i>
+                        Status
+                    </label>
+                    <select name="status" id="edit_status" class="form-control form-select"
+                            style="padding: 0.75rem; border-radius: var(--radius-md);">
+                        <option value="Active">Active</option>
+                        <option value="Archived">Archived</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.25rem;">
+                        <i class="ph ph-qr-code" style="color: var(--primary);"></i>
+                        QR Token
+                    </label>
+                    <input type="text" id="edit_qr_token" class="form-control" readonly
+                           style="padding: 0.75rem; border-radius: var(--radius-md); background: var(--bg-secondary);">
+                    <small style="color: var(--text-muted);">QR Token is auto-generated and cannot be changed</small>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeEditModal()">
+                    <i class="ph ph-x"></i> Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="ph ph-check"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openMemberModal() {
+    const modal = document.getElementById('addMemberModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Focus on first input
+    setTimeout(() => {
+        document.querySelector('#addMemberForm input[name="fullname"]').focus();
+    }, 100);
+}
+
+function closeMemberModal() {
+    const modal = document.getElementById('addMemberModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    document.getElementById('addMemberForm').reset();
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editMemberModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    document.getElementById('editMemberForm').reset();
+}
+
+// Close modals on backdrop click
+window.addEventListener('click', function(event) {
+    const addModal = document.getElementById('addMemberModal');
+    const editModal = document.getElementById('editMemberModal');
+    if (event.target === addModal) {
+        closeMemberModal();
+    }
+    if (event.target === editModal) {
+        closeEditModal();
+    }
+});
+
+// Close modals on Escape key
+window.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeMemberModal();
+        closeEditModal();
+    }
+});
+
+// Close modals on close button click
+document.querySelectorAll('.close-modal').forEach(button => {
+    button.addEventListener('click', function() {
+        const modalId = this.getAttribute('data-modal');
+        const modal = document.getElementById(modalId);
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        if (modalId === 'addMemberModal') {
+            document.getElementById('addMemberForm').reset();
+        } else {
+            document.getElementById('editMemberForm').reset();
+        }
+    });
+});
+
+function openEditModalFromButton(btn) {
+    const id = btn.dataset.id;
+    const fullname = btn.dataset.fullname;
+    const category = btn.dataset.category;
+    const contact = btn.dataset.contact;
+    const email = btn.dataset.email;
+    const status = btn.dataset.status;
+    const qr = btn.dataset.qr;
+    
+    document.getElementById('edit_id').value = id;
+    document.getElementById('edit_fullname').value = fullname;
+    document.getElementById('edit_category').value = category;
+    document.getElementById('edit_contact').value = contact;
+    document.getElementById('edit_email').value = email;
+    document.getElementById('edit_status').value = status;
+    document.getElementById('edit_qr_token').value = qr;
+    
+    const modal = document.getElementById('editMemberModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    setTimeout(() => {
+        document.getElementById('edit_fullname').focus();
+    }, 100);
+}
+</script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
