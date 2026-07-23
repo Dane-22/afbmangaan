@@ -1,0 +1,64 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: attendance.stress.spec.js >> Stress Test: Sunday Rush >> 500 Concurrent Operators Logging Attendance
+- Location: tests\stress\attendance.stress.spec.js:4:3
+
+# Error details
+
+```
+Test timeout of 120000ms exceeded.
+```
+
+```
+Error: page.goto: Test timeout of 120000ms exceeded.
+Call log:
+  - navigating to "http://localhost/afbmangaan/login.php", waiting until "load"
+
+```
+
+# Test source
+
+```ts
+  1  | const { test, expect } = require('@playwright/test');
+  2  | 
+  3  | test.describe('Stress Test: Sunday Rush', () => {
+  4  |   test('500 Concurrent Operators Logging Attendance', async ({ page }) => {
+  5  |     // 1. Login
+> 6  |     await page.goto('login.php');
+     |                ^ Error: page.goto: Test timeout of 120000ms exceeded.
+  7  |     await page.fill('input[name="username"]', 'operator');
+  8  |     await page.fill('input[name="password"]', 'password');
+  9  |     await page.selectOption('select[name="church"]', 'AFB Mangaan');
+  10 |     await page.click('button[type="submit"]');
+  11 | 
+  12 |     // 2. Navigate to Attendance
+  13 |     await page.goto('attendance.php');
+  14 | 
+  15 |     // 3. Perform a rapid search and log attendance
+  16 |     // We search for "a" to get generic results, then mark the first one as present
+  17 |     await page.fill('input[name="search"]', 'a');
+  18 |     
+  19 |     // Wait for API to return results
+  20 |     await page.waitForTimeout(500); 
+  21 | 
+  22 |     // Assuming there is a "Present" button for the results
+  23 |     const presentButtons = page.locator('button:has-text("Present")');
+  24 |     
+  25 |     if (await presentButtons.count() > 0) {
+  26 |       await presentButtons.first().click();
+  27 |       // Wait for success toast/badge
+  28 |       await page.waitForTimeout(500);
+  29 |     }
+  30 |     
+  31 |     // Ensure we reached the end of the loop without crashing
+  32 |     expect(true).toBe(true);
+  33 |   });
+  34 | });
+  35 | 
+```

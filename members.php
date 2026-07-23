@@ -7,15 +7,20 @@ $pageTitle = 'Members';
 require_once __DIR__ . '/includes/auth_check.php';
 require_once __DIR__ . '/functions/attendance_logic.php';
 require_once __DIR__ . '/functions/report_engine.php';
+require_once __DIR__ . '/functions/csrf.php';
 
 // Handle form submissions
 $message = '';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
-    
-    if ($action === 'add' || $action === 'edit') {
+    // Verify CSRF token
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        $error = 'Security validation failed. Please refresh the page and try again.';
+    } else {
+        $action = $_POST['action'] ?? '';
+        
+        if ($action === 'add' || $action === 'edit') {
         $pdo = getDB();
         $id = $_POST['id'] ?? null;
         $fullname = $_POST['fullname'] ?? '';
@@ -52,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (PDOException $e) {
             $error = 'Error archiving member';
         }
+    }
     }
 }
 
@@ -224,6 +230,7 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add';
                                         <i class="ph ph-pencil"></i>
                                     </button>
                                     <form method="POST" style="display: inline;" onsubmit="return confirm('Archive this member?');">
+                                        <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="id" value="<?php echo $member['id']; ?>">
                                         <button type="submit" class="btn btn-sm btn-danger" title="Archive">
@@ -285,6 +292,7 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add';
                             <i class="ph ph-pencil"></i> Edit
                         </button>
                         <form method="POST" style="display: contents;" onsubmit="return confirm('Archive this member?');">
+                            <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="<?php echo $member['id']; ?>">
                             <button type="submit" class="btn btn-archive">
@@ -312,6 +320,7 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add';
         </div>
         <form method="POST" action="" id="addMemberForm">
             <div class="modal-body" style="padding: 1.5rem;">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
                 <input type="hidden" name="action" value="add">
                 
                 <div class="form-group" style="margin-bottom: 1rem;">
@@ -391,6 +400,7 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add';
         </div>
         <form method="POST" action="" id="editMemberForm">
             <div class="modal-body" style="padding: 1.5rem;">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
                 <input type="hidden" name="action" value="edit">
                 <input type="hidden" name="id" id="edit_id">
                 

@@ -4,8 +4,7 @@
  * Include this at the top of all admin pages
  */
 
-session_start();
-
+require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../functions/auth_functions.php';
 require_once __DIR__ . '/../functions/activity_logger.php';
 

@@ -46,17 +46,6 @@ $dbConfig = [
 
 // Create PDO connection
 try {
-    // First try to connect without database to check if we can create it
-    $dsnCheck = "mysql:host={$dbConfig['host']};port={$dbConfig['port']};charset={$dbConfig['charset']}";
-    $pdoCheck = new PDO($dsnCheck, $dbConfig['user'], $dbConfig['pass'], [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-    ]);
-    
-    // Create database if it doesn't exist
-    $pdoCheck->exec("CREATE DATABASE IF NOT EXISTS {$dbConfig['name']} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    $pdoCheck = null; // Close connection
-    
-    // Now connect to the actual database
     $dsn = "mysql:host={$dbConfig['host']};port={$dbConfig['port']};dbname={$dbConfig['name']};charset={$dbConfig['charset']}";
     $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -68,8 +57,24 @@ try {
     $pdo = new PDO($dsn, $dbConfig['user'], $dbConfig['pass'], $options);
     
 } catch (PDOException $e) {
-    error_log("Database connection failed: " . $e->getMessage());
-    die("Database connection failed: " . htmlspecialchars($e->getMessage()) . "<br><br>Please check your .env file or ensure MySQL is running.");
+    // Fallback: If database does not exist, create it and reconnect
+    if ($e->getCode() == 1049 || strpos($e->getMessage(), 'Unknown database') !== false) {
+        try {
+            $dsnCheck = "mysql:host={$dbConfig['host']};port={$dbConfig['port']};charset={$dbConfig['charset']}";
+            $pdoCheck = new PDO($dsnCheck, $dbConfig['user'], $dbConfig['pass'], [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+            ]);
+            $pdoCheck->exec("CREATE DATABASE IF NOT EXISTS {$dbConfig['name']} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+            $pdoCheck = null;
+            $pdo = new PDO($dsn, $dbConfig['user'], $dbConfig['pass'], $options);
+        } catch (PDOException $ex) {
+            error_log("Database creation failed: " . $ex->getMessage());
+            die("Database connection failed: " . htmlspecialchars($ex->getMessage()));
+        }
+    } else {
+        error_log("Database connection failed: " . $e->getMessage());
+        die("Database connection failed: " . htmlspecialchars($e->getMessage()) . "<br><br>Please check your .env file or ensure MySQL is running.");
+    }
 }
 
 // Helper function to get PDO instance

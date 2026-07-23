@@ -173,10 +173,11 @@ $sqlFile = __DIR__ . '/afb_mangaan_db.sql';
                         echo '<div class="status success">All tables and data imported successfully!</div>';
                         
                         echo '<div class="credentials">';
-                        echo '<h3>Default Login Credentials</h3>';
+                        echo '<h3>Setup Complete</h3>';
+                        echo '<p>Default users have been created with <strong>must_change_password</strong> flag enabled.</p>';
+                        echo '<p>You will be required to change your password on first login.</p>';
                         echo '<div class="credential-item"><span class="label">Username:</span> <code>admin</code></div>';
-                        echo '<div class="credential-item"><span class="label">Password:</span> <code>admin123</code></div>';
-                        echo '<div class="credential-item"><span class="label">Role:</span> <code>Administrator</code></div>';
+                        echo '<div class="credential-item"><span class="label">Default Password:</span> <code>admin123</code> (must be changed)</div>';
                         echo '</div>';
                         
                         echo '<a href="index.php" class="btn btn-success">Go to Login Page</a>';

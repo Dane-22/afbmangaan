@@ -14,9 +14,9 @@
     </div>
 
     <!-- JavaScript -->
-    <script src="assets/js/theme_handler.js"></script>
-    <script src="assets/js/attendance_ajax.js"></script>
-    <script src="assets/js/dashboard_charts.js"></script>
+    <script src="assets/js/theme_handler.js?v=2"></script>
+    <script src="assets/js/attendance_ajax.js?v=2"></script>
+    <script src="assets/js/dashboard_charts.js?v=2"></script>
     
     <script>
         // Initialize sidebar functionality

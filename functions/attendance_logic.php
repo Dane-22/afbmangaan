@@ -185,23 +185,39 @@ function getRetentionStats($months = 3) {
     $pdo = getDB();
     $church = $_SESSION['church'] ?? 'AFB Mangaan';
     
-    // Get consistent attendees (attended at least 70% of events in last N months)
-    $stmt = $pdo->prepare("SELECT 
-        a.id, 
-        a.fullname,
-        a.category,
-        COUNT(DISTINCT e.id) as total_events,
-        COUNT(DISTINCT CASE WHEN al.status = 'Present' THEN al.event_id END) as attended_events
+    // Get events in date range first
+    $eventStmt = $pdo->prepare("
+        SELECT id, start_date 
+        FROM events 
+        WHERE start_date >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
+        AND status = 'Completed'
+        AND church = ?
+    ");
+    $eventStmt->execute([$months, $church]);
+    $events = $eventStmt->fetchAll();
+    
+    if (empty($events)) {
+        return ['consistent' => [], 'at_risk' => [], 'consistent_count' => 0, 'at_risk_count' => 0];
+    }
+    
+    $eventIds = array_column($events, 'id');
+    $placeholders = str_repeat('?,', count($eventIds) - 1) . '?';
+    
+    // Get attendance stats in single query
+    $stmt = $pdo->prepare("
+        SELECT a.id, a.fullname, a.category,
+               COUNT(DISTINCT al.event_id) as attended_events,
+               ? as total_events
         FROM attendees a
-        CROSS JOIN events e
-        LEFT JOIN attendance_logs al ON a.id = al.attendee_id AND e.id = al.event_id
-        WHERE e.start_date >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
-        AND e.status = 'Completed'
-        AND a.status = 'Active'
-        AND a.church = ?
-        AND e.church = ?
-        GROUP BY a.id, a.fullname, a.category");
-    $stmt->execute([$months, $church, $church]);
+        LEFT JOIN attendance_logs al ON a.id = al.attendee_id 
+            AND al.event_id IN ($placeholders)
+            AND al.status = 'Present'
+        WHERE a.status = 'Active' AND a.church = ?
+        GROUP BY a.id, a.fullname, a.category
+    ");
+    
+    $params = array_merge([count($eventIds)], $eventIds, [$church]);
+    $stmt->execute($params);
     $allMembers = $stmt->fetchAll();
     
     $consistent = [];

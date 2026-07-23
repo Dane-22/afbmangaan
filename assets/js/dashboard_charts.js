@@ -23,7 +23,8 @@
         if (!ctx) return;
 
         // Fetch data from API
-        fetch('/afb_mangaan_php/api/dashboard_stats.php?type=trends')
+        const API_BASE = window.API_BASE || 'api';
+        fetch(`${API_BASE}/dashboard_stats.php?type=trends`)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.trends) {
@@ -100,7 +101,8 @@
         const ctx = document.getElementById('categoryDistributionChart');
         if (!ctx) return;
 
-        fetch('/afb_mangaan_php/api/dashboard_stats.php?type=categories')
+        const API_BASE = window.API_BASE || 'api';
+        fetch(`${API_BASE}/dashboard_stats.php?type=categories`)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.categories) {
@@ -149,7 +151,8 @@
         const ctx = document.getElementById('eventTypeChart');
         if (!ctx) return;
 
-        fetch('/afb_mangaan_php/api/dashboard_stats.php?type=event_types')
+        const API_BASE = window.API_BASE || 'api';
+        fetch(`${API_BASE}/dashboard_stats.php?type=event_types`)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.event_types) {
@@ -205,7 +208,8 @@
         const ctx = document.getElementById('retentionChart');
         if (!ctx) return;
 
-        fetch('/afb_mangaan_php/api/dashboard_stats.php?type=retention')
+        const API_BASE = window.API_BASE || 'api';
+        fetch(`${API_BASE}/dashboard_stats.php?type=retention`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {

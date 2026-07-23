@@ -13,11 +13,14 @@ require_once __DIR__ . '/activity_logger.php';
 function loginUser($username, $password, $church = 'AFB Mangaan') {
     $pdo = getDB();
     
-    $stmt = $pdo->prepare("SELECT id, username, fullname, role, status, password, church FROM users WHERE username = ? AND church = ? AND status = 'Active' LIMIT 1");
+    $stmt = $pdo->prepare("SELECT id, username, fullname, role, status, password, church, must_change_password FROM users WHERE username = ? AND church = ? AND status = 'Active' LIMIT 1");
     $stmt->execute([$username, $church]);
     $user = $stmt->fetch();
     
-    if ($user && md5($password) === $user['password']) {
+    if ($user && password_verify($password, $user['password'])) {
+        // Regenerate session ID for security
+        session_regenerate_id(true);
+        
         // Create session
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
@@ -25,11 +28,12 @@ function loginUser($username, $password, $church = 'AFB Mangaan') {
         $_SESSION['role'] = $user['role'];
         $_SESSION['church'] = $user['church'];
         $_SESSION['login_time'] = time();
+        $_SESSION['must_change_password'] = $user['must_change_password'];
         
         // Log the login
         logActivity($user['id'], 'LOGIN', "User {$user['username']} logged in successfully ({$user['church']})");
         
-        return ['success' => true, 'user' => $user];
+        return ['success' => true, 'user' => $user, 'must_change_password' => $user['must_change_password']];
     }
     
     return ['success' => false, 'message' => 'Invalid username, password, or church'];
@@ -102,12 +106,12 @@ function updatePassword($userId, $currentPassword, $newPassword) {
     $stmt->execute([$userId]);
     $user = $stmt->fetch();
     
-    if (!$user || md5($currentPassword) !== $user['password']) {
+    if (!$user || !password_verify($currentPassword, $user['password'])) {
         return ['success' => false, 'message' => 'Current password is incorrect'];
     }
     
     // Update password
-    $newHash = md5($newPassword);
+    $newHash = password_hash($newPassword, PASSWORD_BCRYPT, ['cost' => 12]);
     $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
     $stmt->execute([$newHash, $userId]);
     
@@ -129,7 +133,7 @@ function createUser($username, $password, $fullname, $role = 'operator') {
         return ['success' => false, 'message' => 'Username already exists'];
     }
     
-    $hashedPassword = md5($password);
+    $hashedPassword = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
     
     $stmt = $pdo->prepare("INSERT INTO users (username, password, fullname, role) VALUES (?, ?, ?, ?)");
     $stmt->execute([$username, $hashedPassword, $fullname, $role]);

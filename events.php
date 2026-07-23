@@ -6,16 +6,21 @@
 $pageTitle = 'Events';
 require_once __DIR__ . '/includes/auth_check.php';
 require_once __DIR__ . '/functions/attendance_logic.php';
+require_once __DIR__ . '/functions/csrf.php';
 
 // Handle form submissions
 $message = '';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
-    $pdo = getDB();
-    
-    if ($action === 'create' || $action === 'edit') {
+    // Verify CSRF token
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        $error = 'Security validation failed. Please refresh the page and try again.';
+    } else {
+        $action = $_POST['action'] ?? '';
+        $pdo = getDB();
+        
+        if ($action === 'create' || $action === 'edit') {
         $id = $_POST['id'] ?? null;
         $eventName = $_POST['event_name'] ?? '';
         $startDate = $_POST['start_date'] ?? '';
@@ -83,6 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (PDOException $e) {
             $error = 'Error updating status';
         }
+    }
     }
 }
 
@@ -168,6 +174,7 @@ $createMode = isset($_GET['action']) && $_GET['action'] === 'create';
         </div>
         <div class="card-body">
             <form method="POST" action="">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
                 <input type="hidden" name="action" value="<?php echo $editMode ? 'edit' : 'create'; ?>">
                 <?php if ($editMode): ?>
                     <input type="hidden" name="id" value="<?php echo $editEvent['id']; ?>">
@@ -317,6 +324,7 @@ $createMode = isset($_GET['action']) && $_GET['action'] === 'create';
                                         <i class="ph ph-pencil"></i>
                                     </a>
                                     <form method="POST" style="display: inline;">
+                                        <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
                                         <input type="hidden" name="action" value="status">
                                         <input type="hidden" name="id" value="<?php echo $event['id']; ?>">
                                         <select name="status" onchange="this.form.submit()" class="form-control form-select" style="width: auto; font-size: 0.75rem; padding: 0.25rem 1.5rem 0.25rem 0.5rem;">
@@ -401,6 +409,7 @@ $createMode = isset($_GET['action']) && $_GET['action'] === 'create';
                         </a>
                     </div>
                     <form method="POST" class="event-status-form">
+                        <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
                         <input type="hidden" name="action" value="status">
                         <input type="hidden" name="id" value="<?php echo $event['id']; ?>">
                         <select name="status" onchange="this.form.submit()" class="form-control form-select">

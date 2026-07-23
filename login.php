@@ -4,9 +4,9 @@
  * Login Page (login.php)
  */
 
-session_start();
-
+require_once __DIR__ . '/config/session.php';
 require_once __DIR__ . '/functions/auth_functions.php';
+require_once __DIR__ . '/functions/csrf.php';
 
 // Redirect if already logged in
 if (isLoggedIn()) {
@@ -18,17 +18,28 @@ $error = '';
 
 // Handle login
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'] ?? '';
-    $password = $_POST['password'] ?? '';
-    $church = $_POST['church'] ?? 'AFB Mangaan';
-    
-    $result = loginUser($username, $password, $church);
-    
-    if ($result['success']) {
-        header('Location: dashboard.php');
-        exit();
+    // Verify CSRF token
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        $error = 'Security validation failed. Please refresh the page and try again.';
+        // BAGONG LINYA: Burahin ang sira/invalid token para mag-generate ng bago sa sunod na load
+        unset($_SESSION['csrf_token']); 
     } else {
-        $error = $result['message'];
+        $username = $_POST['username'] ?? '';
+        $password = $_POST['password'] ?? '';
+        $church = $_POST['church'] ?? 'AFB Mangaan';
+        
+        $result = loginUser($username, $password, $church);
+        
+        if ($result['success']) {
+            if ($result['must_change_password']) {
+                header('Location: change_password.php');
+                exit();
+            }
+            header('Location: dashboard.php');
+            exit();
+        } else {
+            $error = $result['message'];
+        }
     }
 }
 ?>
@@ -373,8 +384,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="login-page">
-        <button class="theme-toggle-login" id="themeToggle">
-            <i class="ph ph-moon" id="themeIcon"></i>
+        <button class="theme-toggle-login" id="themeToggle" aria-label="Toggle theme">
+            <i class="ph ph-moon" id="themeIcon" aria-hidden="true"></i>
         </button>
         
         <div class="login-container animate-fadeInUp">
@@ -395,11 +406,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php endif; ?>
                 
                 <form method="POST" action="">
+                    <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
                     <div class="form-group">
-                        <label class="form-label">Church</label>
+                        <label class="form-label" for="church">Church</label>
                         <div class="input-group">
-                            <i class="ph ph-buildings"></i>
-                            <select name="church" class="form-control form-select" required style="padding-left: 2.75rem;">
+                            <i class="ph ph-buildings" aria-hidden="true"></i>
+                            <select id="church" name="church" class="form-control form-select" required aria-required="true" style="padding-left: 2.75rem;">
                                 <option value="AFB Mangaan">AFB Mangaan</option>
                                 <option value="AFB Lettac Sur">AFB Lettac Sur</option>
                             </select>
@@ -407,18 +419,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Username</label>
+                        <label class="form-label" for="username">Username</label>
                         <div class="input-group">
-                            <i class="ph ph-user"></i>
-                            <input type="text" name="username" class="form-control" placeholder="Enter username" required autofocus>
+                            <i class="ph ph-user" aria-hidden="true"></i>
+                            <input type="text" id="username" name="username" class="form-control" placeholder="Enter username" required aria-required="true" minlength="3" maxlength="50" pattern="[a-zA-Z0-9_]+" title="Username can only contain letters, numbers, and underscores" autofocus>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Password</label>
+                        <label class="form-label" for="password">Password</label>
                         <div class="input-group">
-                            <i class="ph ph-lock-key"></i>
-                            <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+                            <i class="ph ph-lock-key" aria-hidden="true"></i>
+                            <input type="password" id="password" name="password" class="form-control" placeholder="Enter password" required aria-required="true" minlength="6" maxlength="255">
                         </div>
                     </div>
                     
@@ -430,7 +442,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             
             <div class="login-footer">
-                <p>Default login: admin / admin123</p>
                 <p style="margin-top: 0.5rem; font-size: 0.75rem;">v1.0.0</p>
             </div>
         </div>

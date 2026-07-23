@@ -21,6 +21,8 @@ access_log
 # Dependencies
 /vendor/
 /node_modules/
+composer.lock
+composer.phar
 
 # IDE
 .vscode/
@@ -46,3 +48,6 @@ desktop.ini
 
 .vercel
 .env*.local
+
+# Backups
+/backups/

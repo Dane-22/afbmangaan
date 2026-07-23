@@ -76,11 +76,11 @@ CREATE TABLE IF NOT EXISTS `attendees` (
 --
 
 INSERT INTO `attendees` (`id`, `fullname`, `category`, `contact`, `email`, `qr_token`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'Juan Dela Cruz', 'Adult', '09123456789', 'juan@email.com', 'AFB001001', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
-(2, 'Maria Santos', 'Youth', '09187654321', 'maria@email.com', 'AFB001002', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
-(3, 'Pedro Penduko', 'Senior', '09111222333', 'pedro@email.com', 'AFB001003', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
-(4, 'Ana Makiling', 'Adult', '09444555666', 'ana@email.com', 'AFB001004', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
-(5, 'Diego Silang', 'Youth', '09777888999', 'diego@email.com', 'AFB001005', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56');
+(1, 'Juan Dela Cruz', 'MCYO', '09123456789', 'juan@email.com', 'AFB001001', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
+(2, 'Maria Santos', 'WMO', '09187654321', 'maria@email.com', 'AFB001002', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
+(3, 'Pedro Penduko', 'CCMO', '09111222333', 'pedro@email.com', 'AFB001003', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
+(4, 'Ana Makiling', 'MCYO', '09444555666', 'ana@email.com', 'AFB001004', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
+(5, 'Diego Silang', 'WMO', '09777888999', 'diego@email.com', 'AFB001005', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56');
 
 -- --------------------------------------------------------
 
@@ -165,26 +165,27 @@ CREATE TABLE IF NOT EXISTS `users` (
   `id` int NOT NULL AUTO_INCREMENT,
   `church` enum('AFB Mangaan','AFB Lettac Sur') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'AFB Mangaan',
   `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `password` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'MD5 hashed password',
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Bcrypt hashed password',
   `fullname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `role` enum('admin','operator','viewer') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'operator',
   `status` enum('Active','Inactive') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'Active',
+  `must_change_password` tinyint(1) DEFAULT 0 COMMENT 'Force password change on next login',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_user_church` (`church`, `username`),
   KEY `idx_church` (`church`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `church`, `username`, `password`, `fullname`, `role`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'AFB Mangaan', 'admin', '0192023a7bbd73250516f069df18b500', 'System Administrator', 'admin', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
-(2, 'AFB Mangaan', 'operator', '5f4dcc3b5aa765d61d8327deb882cf99', 'Default Operator', 'operator', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
-(3, 'AFB Lettac Sur', 'admin', '0192023a7bbd73250516f069df18b500', 'System Administrator', 'admin', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
-(4, 'AFB Lettac Sur', 'operator', '5f4dcc3b5aa765d61d8327deb882cf99', 'Default Operator', 'operator', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56');
+INSERT INTO `users` (`id`, `church`, `username`, `password`, `fullname`, `role`, `status`, `must_change_password`, `created_at`, `updated_at`) VALUES
+(1, 'AFB Mangaan', 'admin', '$2y$12$xUqWdV3KoWK8B1TWk2HiI.pOciDfdFRSx9ZYbWKwOwOWc4PdWN/RG', 'System Administrator', 'admin', 'Active', 1, '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
+(2, 'AFB Mangaan', 'operator', '$2y$12$qIOuVMMvw6fgTjsZM9/nsuRcWhIYuAXo6kzmiYZmmg/L2LBivzsEi', 'Default Operator', 'operator', 'Active', 1, '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
+(3, 'AFB Lettac Sur', 'admin', '$2y$12$xUqWdV3KoWK8B1TWk2HiI.pOciDfdFRSx9ZYbWKwOwOWc4PdWN/RG', 'System Administrator', 'admin', 'Active', 1, '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
+(4, 'AFB Lettac Sur', 'operator', '$2y$12$qIOuVMMvw6fgTjsZM9/nsuRcWhIYuAXo6kzmiYZmmg/L2LBivzsEi', 'Default Operator', 'operator', 'Active', 1, '2026-02-12 03:34:56', '2026-02-12 03:34:56');
 
 --
 -- Constraints for dumped tables
@@ -209,6 +210,32 @@ ALTER TABLE `events`
 --
 ALTER TABLE `system_logs`
   ADD CONSTRAINT `system_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+CREATE INDEX idx_attendees_fullname ON attendees(fullname);
+CREATE INDEX idx_attendees_qr_token ON attendees(qr_token);
+CREATE INDEX idx_attendance_log_time ON attendance_logs(log_time);
+CREATE INDEX idx_events_start_date ON events(start_date);
+CREATE INDEX idx_events_status ON events(status);
+CREATE INDEX idx_system_logs_timestamp ON system_logs(timestamp);
+
+CREATE TABLE IF NOT EXISTS `rate_limits` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `identifier` VARCHAR(64) NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    KEY `idx_identifier` (`identifier`),
+    KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `webhook_queue` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `payload` JSON NOT NULL,
+    `url` VARCHAR(500) NOT NULL,
+    `attempts` INT DEFAULT 0,
+    `status` ENUM('pending', 'sent', 'failed') DEFAULT 'pending',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

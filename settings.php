@@ -5,26 +5,32 @@
 
 $pageTitle = 'Settings';
 require_once __DIR__ . '/includes/auth_check.php';
+require_once __DIR__ . '/functions/csrf.php';
 
 $message = '';
 $error = '';
 
 // Handle password change
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
-    $currentPassword = $_POST['current_password'] ?? '';
-    $newPassword = $_POST['new_password'] ?? '';
-    $confirmPassword = $_POST['confirm_password'] ?? '';
-    
-    if ($newPassword !== $confirmPassword) {
-        $error = 'New passwords do not match';
-    } elseif (strlen($newPassword) < 6) {
-        $error = 'Password must be at least 6 characters';
+    // Verify CSRF token
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        $error = 'Security validation failed. Please refresh the page and try again.';
     } else {
-        $result = updatePassword($_SESSION['user_id'], $currentPassword, $newPassword);
-        if ($result['success']) {
-            $message = 'Password updated successfully';
+        $currentPassword = $_POST['current_password'] ?? '';
+        $newPassword = $_POST['new_password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
+        
+        if ($newPassword !== $confirmPassword) {
+            $error = 'New passwords do not match';
+        } elseif (strlen($newPassword) < 6) {
+            $error = 'Password must be at least 6 characters';
         } else {
-            $error = $result['message'];
+            $result = updatePassword($_SESSION['user_id'], $currentPassword, $newPassword);
+            if ($result['success']) {
+                $message = 'Password updated successfully';
+            } else {
+                $error = $result['message'];
+            }
         }
     }
 }
@@ -90,6 +96,7 @@ $currentUser = getCurrentUser();
         </div>
         <div class="card-body">
             <form method="POST" action="">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
                 <input type="hidden" name="change_password" value="1">
                 
                 <div class="form-group">

@@ -42,7 +42,8 @@
     function searchAttendees(query) {
         const searchResults = document.getElementById('searchResults');
         
-        fetch(`/afb_mangaan_php/api/search_attendees.php?q=${encodeURIComponent(query)}`)
+        const API_BASE = window.API_BASE || 'api';
+        fetch(`${API_BASE}/search_attendees.php?q=${encodeURIComponent(query)}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.attendees) {
@@ -103,7 +104,8 @@
         formData.append('status', status);
         formData.append('method', method);
         
-        return fetch('/afb_mangaan_php/api/record_attendance.php', {
+        const API_BASE = window.API_BASE || 'api';
+        return fetch(`${API_BASE}/record_attendance.php`, {
             method: 'POST',
             body: formData
         })
@@ -134,7 +136,8 @@
         const listContainer = document.getElementById('attendanceList');
         if (!listContainer) return;
         
-        fetch(`/afb_mangaan_php/api/get_attendance.php?event_id=${eventId}`)
+        const API_BASE = window.API_BASE || 'api';
+        fetch(`${API_BASE}/get_attendance.php?event_id=${eventId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -173,7 +176,8 @@
     function deleteAttendance(attendanceId) {
         if (!confirm('Are you sure you want to delete this attendance record?')) return;
         
-        fetch(`/afb_mangaan_php/api/delete_attendance.php?id=${attendanceId}`, { method: 'DELETE' })
+        const API_BASE = window.API_BASE || 'api';
+        fetch(`${API_BASE}/delete_attendance.php?id=${attendanceId}`, { method: 'DELETE' })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {

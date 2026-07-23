@@ -52,8 +52,9 @@ The **AFB Mangaan Attendance & Analytics System** is a comprehensive web-based s
 ### Backend
 - **PHP 7.4+** with PDO for database operations
 - **MySQL 5.7+** (utf8mb4 charset support)
-- **Session-based authentication** with 1-hour timeout
-- **MD5 password hashing** (legacy, recommended to upgrade to bcrypt)
+- **Authentication**: Dual support for Session-based auth and JWT tokens
+- **Password Security**: Bcrypt password hashing (`password_hash`)
+- **Performance**: File-based caching for analytics and async webhook processing
 
 ### Frontend
 - **HTML5** with semantic markup
@@ -93,9 +94,7 @@ The **AFB Mangaan Attendance & Analytics System** is a comprehensive web-based s
 | `status` | ENUM | 'Active' or 'Inactive' |
 | `created_at` | TIMESTAMP | Account creation time |
 
-**Default Accounts:**
-- admin/admin123 (admin role)
-- operator/password (operator role)
+**Note:** Default accounts have been removed for security. New admin accounts must be created using the secure registration endpoint or CLI script, and users are required to change passwords on first login.
 
 #### `attendees` - Church Members
 | Column | Type | Description |
@@ -615,8 +614,8 @@ $_SESSION['login_time']   // Unix timestamp
 
 ### 7.2 Password Security
 
-**Current**: MD5 hashing (legacy)  
-**Recommended Upgrade**: Password_hash() with bcrypt
+**Current**: PHP's native `password_hash()` using the Bcrypt algorithm (cost factor 12).
+**Legacy**: The system previously used MD5. A migration script handles upgrading MD5 hashes to Bcrypt upon successful login.
 
 ### 7.3 Activity Logging
 
@@ -765,12 +764,8 @@ mysql -u root -p < afb_mangaan_db.sql
 
 ### 10.3 Default Login Credentials
 
-| Username | Password | Role | Church |
-|----------|----------|------|--------|
-| admin | admin123 | admin | AFB Mangaan |
-| operator | password | operator | AFB Mangaan |
-| admin | admin123 | admin | AFB Lettac Sur |
-| operator | password | operator | AFB Lettac Sur |
+*For security reasons, hardcoded default credentials have been removed.* 
+Please use the setup wizard or backend script to generate your initial Admin account with a secure, random password.
 
 ### 10.4 File Permissions
 
