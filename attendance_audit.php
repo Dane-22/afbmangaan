@@ -115,8 +115,8 @@ if ($viewMode === 'week') {
     }
 }
 
-// Get ALL events for dropdown filter (last 3 months) - filtered by church
-$stmt = $pdo->prepare("SELECT * FROM events WHERE church = ? AND start_date >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH) ORDER BY start_date DESC, event_time ASC");
+// Get ALL events for dropdown filter - filtered by church
+$stmt = $pdo->prepare("SELECT * FROM events WHERE church = ? ORDER BY start_date DESC, event_time ASC");
 $stmt->execute([$church]);
 $allEvents = $stmt->fetchAll();
 

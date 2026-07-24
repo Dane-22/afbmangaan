@@ -76,11 +76,24 @@ $todayEvent = getTodayEvent();
         </div>
         
         <?php if ($selectedEvent): ?>
+            <?php 
+            $eventStatus = $selectedEvent['status'] ?? 'Upcoming';
+            $isEventActive = ($eventStatus === 'Ongoing');
+            ?>
             <input type="hidden" id="eventId" value="<?php echo $selectedEvent['id']; ?>">
+            <input type="hidden" id="eventStatus" value="<?php echo $eventStatus; ?>">
+            <input type="hidden" id="isEventActive" value="<?php echo $isEventActive ? '1' : '0'; ?>">
+            
+            <?php if (!$isEventActive): ?>
+                <div class="alert alert-warning" style="margin-bottom: 1rem; padding: 0.75rem 1rem; border-radius: 8px; background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; color: #92400e;">
+                    <i class="ph ph-warning"></i> 
+                    <strong>Event Status: <?php echo htmlspecialchars($eventStatus); ?></strong> - Attendance recording is disabled for <?php echo strtolower($eventStatus); ?> events.
+                </div>
+            <?php endif; ?>
             
             <!-- QR Scanner Toggle -->
             <div style="display: flex; gap: 0.5rem; margin: 1.5rem 0;">
-                <button type="button" class="btn btn-sm btn-secondary" onclick="toggleQR()">
+                <button type="button" class="btn btn-sm btn-secondary" onclick="toggleQR()" <?php echo $isEventActive ? '' : 'disabled style="opacity: 0.5; cursor: not-allowed;"'; ?>>
                     <i class="ph ph-qr-code"></i> QR Scanner
                 </button>
             </div>
@@ -129,7 +142,7 @@ $todayEvent = getTodayEvent();
                 </span>
             </h3>
             <div style="display: flex; gap: 0.5rem;">
-                <button class="btn btn-sm btn-success" onclick="markAllPresent()">
+                <button class="btn btn-sm btn-success" onclick="markAllPresent()" <?php echo $isEventActive ? '' : 'disabled style="opacity: 0.5; cursor: not-allowed;"'; ?>>
                     <i class="ph ph-check"></i> Mark All Present
                 </button>
                 <a href="api/export_attendance.php?event_id=<?php echo $eventId; ?>&format=csv" class="btn btn-sm btn-secondary">
@@ -173,7 +186,7 @@ $todayEvent = getTodayEvent();
                                 <td data-label="Actions">
                                     <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
                                         <?php if ($status !== 'Absent'): ?>
-                                            <button class="btn btn-sm" onclick="quickMark(<?php echo $member['id']; ?>, 'Absent')" id="btn-absent-<?php echo $member['id']; ?>" style="background: #dc2626; color: white; border: none; padding: 0.4rem 0.75rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;">
+                                            <button class="btn btn-sm" onclick="quickMark(<?php echo $member['id']; ?>, 'Absent')" id="btn-absent-<?php echo $member['id']; ?>" style="background: #dc2626; color: white; border: none; padding: 0.4rem 0.75rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;" <?php echo $isEventActive ? '' : 'disabled style="opacity: 0.5; cursor: not-allowed;"'; ?>>
                                                 <i class="ph ph-x-circle"></i> Absent
                                             </button>
                                         <?php else: ?>
@@ -190,7 +203,7 @@ $todayEvent = getTodayEvent();
                                                 <?php endif; ?>
                                             </span>
                                         <?php else: ?>
-                                            <button class="btn btn-sm" onclick="quickMark(<?php echo $member['id']; ?>, 'Present')" id="btn-present-<?php echo $member['id']; ?>" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.75rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;">
+                                            <button class="btn btn-sm" onclick="quickMark(<?php echo $member['id']; ?>, 'Present')" id="btn-present-<?php echo $member['id']; ?>" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.75rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;" <?php echo $isEventActive ? '' : 'disabled style="opacity: 0.5; cursor: not-allowed;"'; ?>>
                                                 <i class="ph ph-clock-in"></i> Time In
                                             </button>
                                         <?php endif; ?>
@@ -232,7 +245,7 @@ $todayEvent = getTodayEvent();
                         </div>
                         <div class="member-grid-actions">
                             <?php if ($status !== 'Absent'): ?>
-                                <button class="btn btn-absent" onclick="quickMark(<?php echo $member['id']; ?>, 'Absent')" id="btn-absent-card-<?php echo $member['id']; ?>">
+                                <button class="btn btn-absent" onclick="quickMark(<?php echo $member['id']; ?>, 'Absent')" id="btn-absent-card-<?php echo $member['id']; ?>" <?php echo $isEventActive ? '' : 'disabled style="opacity: 0.5; cursor: not-allowed;"'; ?>>
                                     <i class="ph ph-x-circle"></i> Absent
                                 </button>
                             <?php else: ?>
@@ -249,7 +262,7 @@ $todayEvent = getTodayEvent();
                                     <?php endif; ?>
                                 </span>
                             <?php else: ?>
-                                <button class="btn btn-present" onclick="quickMark(<?php echo $member['id']; ?>, 'Present')" id="btn-present-card-<?php echo $member['id']; ?>">
+                                <button class="btn btn-present" onclick="quickMark(<?php echo $member['id']; ?>, 'Present')" id="btn-present-card-<?php echo $member['id']; ?>" <?php echo $isEventActive ? '' : 'disabled style="opacity: 0.5; cursor: not-allowed;"'; ?>>
                                     <i class="ph ph-clock-in"></i> Time In
                                 </button>
                             <?php endif; ?>
@@ -361,10 +374,20 @@ function quickMark(attendeeId, status) {
     console.log(`quickMark called - attendeeId: ${attendeeId}, status: ${status}`);
     
     const eventId = document.getElementById('eventId')?.value;
+    const isEventActive = document.getElementById('isEventActive')?.value === '1';
+    const eventStatus = document.getElementById('eventStatus')?.value;
+    
     console.log('eventId:', eventId);
+    console.log('isEventActive:', isEventActive);
+    console.log('eventStatus:', eventStatus);
     
     if (!eventId) {
         showToast('Please select an event first', 'warning');
+        return;
+    }
+    
+    if (!isEventActive) {
+        showToast(`Cannot record attendance for ${eventStatus} events`, 'warning');
         return;
     }
     
@@ -384,7 +407,7 @@ function quickMark(attendeeId, status) {
     const body = `event_id=${eventId}&attendee_id=${attendeeId}&status=${status}&method=Manual`;
     console.log('Request body:', body);
     
-    fetch('/afb_mangaan_php/api/record_attendance.php', {
+    fetch('api/record_attendance.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body
@@ -541,9 +564,16 @@ function updateRowStatus(attendeeId, status, timeFormatted) {
 
 function markAllPresent() {
     const eventId = document.getElementById('eventId')?.value;
+    const isEventActive = document.getElementById('isEventActive')?.value === '1';
+    const eventStatus = document.getElementById('eventStatus')?.value;
     
     if (!eventId) {
         showToast('Please select an event first', 'warning');
+        return;
+    }
+    
+    if (!isEventActive) {
+        showToast(`Cannot record attendance for ${eventStatus} events`, 'warning');
         return;
     }
     
@@ -561,7 +591,7 @@ function markAllPresent() {
             total++;
             const attendeeId = row.id.replace('member-row-', '');
             
-            fetch('/afb_mangaan_php/api/record_attendance.php', {
+            fetch('api/record_attendance.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `event_id=${eventId}&attendee_id=${attendeeId}&status=Present&method=Manual`

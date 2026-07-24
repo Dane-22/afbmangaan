@@ -764,8 +764,12 @@ mysql -u root -p < afb_mangaan_db.sql
 
 ### 10.3 Default Login Credentials
 
-*For security reasons, hardcoded default credentials have been removed.* 
-Please use the setup wizard or backend script to generate your initial Admin account with a secure, random password.
+| Username | Password | Role | Church |
+|----------|----------|------|--------|
+| admin | admin123 | admin | AFB Mangaan |
+| operator | password | operator | AFB Mangaan |
+| admin | admin123 | admin | AFB Lettac Sur |
+| operator | password | operator | AFB Lettac Sur |
 
 ### 10.4 File Permissions
 
