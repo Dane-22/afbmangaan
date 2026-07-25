@@ -318,11 +318,13 @@ function initHorizontalTimeline() {
     
     if (!container || !track) return;
     
-    // Calculate total scroll distance
-    const totalWidth = track.scrollWidth - window.innerWidth;
-    const itemWidth = 400 + 64; // card width + gap
+    // Dynamic calculations for navbar height and total horizontal overflow width
+    const getNavHeight = () => document.querySelector('.nav')?.offsetHeight || 80;
+    const getTotalWidth = () => Math.max(0, track.scrollWidth - window.innerWidth);
+    
     let currentIndex = 0;
     const maxIndex = items.length - 1;
+    let horizontalTrigger = null;
     
     // Update arrow button states
     function updateArrowButtons() {
@@ -334,20 +336,18 @@ function initHorizontalTimeline() {
     function navigateToItem(index) {
         currentIndex = Math.max(0, Math.min(index, maxIndex));
         
-        // Calculate the target scroll position
-        // The timeline is pinned, so we need to scroll to the start of the container
-        // plus the proportional distance through the horizontal scroll
+        // Calculate the target scroll position relative to GSAP pin start
         const targetProgress = currentIndex / maxIndex;
-        const scrollStart = container.offsetTop;
-        const scrollDistance = totalWidth;
-        const targetScroll = scrollStart + (targetProgress * scrollDistance);
+        const totalWidth = getTotalWidth();
+        const navHeight = getNavHeight();
+        const scrollStart = horizontalTrigger ? horizontalTrigger.start : (container.offsetTop - navHeight);
+        const targetScroll = scrollStart + (targetProgress * totalWidth);
         
         gsap.to(window, {
             duration: 0.8,
             scrollTo: { y: targetScroll, autoKill: false },
             ease: 'power2.inOut',
             onComplete: () => {
-                // Update the track position immediately to match
                 const xPos = -targetProgress * totalWidth;
                 gsap.set(track, { x: xPos });
             }
@@ -369,16 +369,16 @@ function initHorizontalTimeline() {
         });
     }
     
-    // Pin the timeline section and scroll horizontally
-    const horizontalTrigger = ScrollTrigger.create({
+    // Pin the timeline section and scroll horizontally below fixed navbar
+    horizontalTrigger = ScrollTrigger.create({
         trigger: container,
-        start: 'top top',
-        end: () => `+=${totalWidth}`,
+        start: () => `top ${getNavHeight()}px`,
+        end: () => `+=${getTotalWidth()}`,
         pin: true,
         scrub: 1,
         anticipatePin: 1,
         onUpdate: (self) => {
-            const xPos = -self.progress * totalWidth;
+            const xPos = -self.progress * getTotalWidth();
             gsap.set(track, { x: xPos });
             
             // Update current index based on scroll progress
@@ -386,56 +386,45 @@ function initHorizontalTimeline() {
             updateArrowButtons();
         },
         onEnter: () => {
-            // Show sacred seal when entering timeline
-            gsap.to('#sacredSeal', { 
-                x: 0, 
-                duration: 0.5, 
-                ease: 'power2.out',
-                onStart: () => document.getElementById('sacredSeal').classList.add('visible')
-            });
+            const seal = document.getElementById('sacredSeal');
+            if (seal) {
+                gsap.to(seal, { 
+                    x: 0, 
+                    duration: 0.5, 
+                    ease: 'power2.out',
+                    onStart: () => seal.classList.add('visible')
+                });
+            }
             updateArrowButtons();
         },
         onLeave: () => {
-            // Hide sacred seal when leaving timeline
-            gsap.to('#sacredSeal', { 
-                x: 150, 
-                duration: 0.5, 
-                ease: 'power2.in',
-                onComplete: () => document.getElementById('sacredSeal').classList.remove('visible')
-            });
+            const seal = document.getElementById('sacredSeal');
+            if (seal) {
+                gsap.to(seal, { 
+                    x: 150, 
+                    duration: 0.5, 
+                    ease: 'power2.in',
+                    onComplete: () => seal.classList.remove('visible')
+                });
+            }
         },
         onLeaveBack: () => {
-            // Hide when scrolling back past start
-            gsap.to('#sacredSeal', { 
-                x: 150, 
-                duration: 0.5, 
-                ease: 'power2.in',
-                onComplete: () => document.getElementById('sacredSeal').classList.remove('visible')
-            });
+            const seal = document.getElementById('sacredSeal');
+            if (seal) {
+                gsap.to(seal, { 
+                    x: 150, 
+                    duration: 0.5, 
+                    ease: 'power2.in',
+                    onComplete: () => seal.classList.remove('visible')
+                });
+            }
         }
     });
     
     triggers.push(horizontalTrigger);
     
-    // Individual item animations
-    items.forEach((item, index) => {
-        const itemTrigger = ScrollTrigger.create({
-            trigger: item,
-            start: 'top 85%',
-            end: 'top 20%',
-            onEnter: () => {
-                gsap.to(item, {
-                    opacity: 1,
-                    x: 0,
-                    duration: 0.6,
-                    ease: 'power2.out'
-                });
-            },
-            once: true
-        });
-        
-        triggers.push(itemTrigger);
-    });
+    // Ensure all items are visible without vertical trigger conflicts
+    gsap.set(items, { opacity: 1, x: 0 });
 }
 
 /**

@@ -1642,6 +1642,10 @@ a:not(.btn):hover::after {
         grid-template-columns: 1fr;
     }
     
+    .timeline__track {
+        padding: 0 max(1.5rem, calc(50vw - 150px));
+    }
+    
     .timeline__item {
         width: 300px;
     }
