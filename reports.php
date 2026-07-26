@@ -4,6 +4,7 @@
  */
 
 $pageTitle = 'Reports';
+$loadChartJs = true;
 require_once __DIR__ . '/includes/auth_check.php';
 require_once __DIR__ . '/functions/report_engine.php';
 
@@ -21,7 +22,7 @@ $reportData = getAttendanceReport($eventId, $fromDate, $toDate, $category);
 
 // Get events for dropdown
 $events = getEvents();
-$categories = ['Youth', 'Adult', 'Senior', 'Child'];
+$categories = ['MCYO', 'WMO', 'CCMO', 'KIDS', 'Visitors', 'Other'];
 
 // Get top attendees
 $topAttendees = getTopAttendees(10, $fromDate, $toDate);

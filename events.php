@@ -92,10 +92,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get events
+// Get events with pagination
+$page = max(1, intval($_GET['page'] ?? 1));
+$perPage = 50;
+
 $filters = [];
 if (!empty($_GET['status'])) $filters['status'] = $_GET['status'];
 if (!empty($_GET['type'])) $filters['type'] = $_GET['type'];
+
+$allMatchingEvents = getEvents($filters);
+$totalEvents = count($allMatchingEvents);
+$totalPages = ceil($totalEvents / $perPage);
+
+$filters['limit'] = $perPage;
+$filters['offset'] = ($page - 1) * $perPage;
 $events = getEvents($filters);
 
 $eventTypes = ['Sunday Service', 'Midweek Service', 'Special Event', 'Meeting', 'Other'];
@@ -105,12 +115,9 @@ $statuses = ['Upcoming', 'Ongoing', 'Completed', 'Cancelled'];
 $editMode = false;
 $editEvent = null;
 if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
-    foreach ($events as $e) {
-        if ($e['id'] == $_GET['edit']) {
-            $editMode = true;
-            $editEvent = $e;
-            break;
-        }
+    $editEvent = getEventById($_GET['edit']);
+    if ($editEvent) {
+        $editMode = true;
     }
 }
 $createMode = isset($_GET['action']) && $_GET['action'] === 'create';
@@ -258,7 +265,7 @@ $createMode = isset($_GET['action']) && $_GET['action'] === 'create';
             <i class="ph ph-calendar"></i>
             Events
             <span style="font-size: 0.875rem; font-weight: normal; color: var(--text-muted);">
-                (<?php echo count($events); ?> found)
+                (<?php echo $totalEvents; ?> found)
             </span>
         </h3>
     </div>
@@ -421,6 +428,23 @@ $createMode = isset($_GET['action']) && $_GET['action'] === 'create';
                 </div>
             <?php endforeach; ?>
         </div>
+        
+        <!-- Pagination UI -->
+        <?php if ($totalPages > 1): ?>
+            <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem;" class="pagination-container">
+                <?php if ($page > 1): ?>
+                    <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $page - 1])); ?>" class="btn btn-sm btn-secondary">Previous</a>
+                <?php endif; ?>
+                
+                <span style="padding: 0.5rem 1rem; background: var(--bg-secondary); border-radius: var(--radius);">
+                    Page <?php echo $page; ?> of <?php echo $totalPages; ?>
+                </span>
+                
+                <?php if ($page < $totalPages): ?>
+                    <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $page + 1])); ?>" class="btn btn-sm btn-secondary">Next</a>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 

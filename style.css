@@ -880,6 +880,7 @@ h1, h2, h3, .hero__title, .section__title, .quote__text {
     position: relative;
     width: 100%;
     height: calc(100vh - 8rem);
+    height: calc(100svh - 8rem);
     overflow: hidden;
 }
 
@@ -999,6 +1000,7 @@ h1, h2, h3, .hero__title, .section__title, .quote__text {
 
     .activities__container {
         height: calc(100vh - 6rem);
+        height: calc(100svh - 6rem);
     }
 
     .activities__track {
@@ -1026,6 +1028,7 @@ h1, h2, h3, .hero__title, .section__title, .quote__text {
 
     .activities__container {
         height: calc(100vh - 6rem);
+        height: calc(100svh - 6rem);
     }
 
     .activities__track {
@@ -1037,7 +1040,7 @@ h1, h2, h3, .hero__title, .section__title, .quote__text {
     }
 
     .activity-card__body {
-        padding: 1.5rem 1.5rem;
+        padding: 1.25rem 1.25rem;
     }
 
     .ministry-card--centered {

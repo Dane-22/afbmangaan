@@ -89,7 +89,36 @@ if ($statusFilter) {
     $params[] = $statusFilter;
 }
 
-$sql .= " ORDER BY fullname ASC";
+// Pagination
+$page = max(1, intval($_GET['page'] ?? 1));
+$perPage = 50;
+
+// Count total matching members
+$countSql = "SELECT COUNT(*) as total FROM attendees WHERE church = ?";
+$countParams = [$church];
+if ($search) {
+    $countSql .= " AND (fullname LIKE ? OR qr_token LIKE ? OR contact LIKE ?)";
+    $countParams[] = "%{$search}%";
+    $countParams[] = "%{$search}%";
+    $countParams[] = "%{$search}%";
+}
+if ($categoryFilter) {
+    $countSql .= " AND category = ?";
+    $countParams[] = $categoryFilter;
+}
+if ($statusFilter) {
+    $countSql .= " AND status = ?";
+    $countParams[] = $statusFilter;
+}
+$countStmt = $pdo->prepare($countSql);
+$countStmt->execute($countParams);
+$totalMembers = $countStmt->fetch()['total'] ?? 0;
+$totalPages = ceil($totalMembers / $perPage);
+
+$offset = ($page - 1) * $perPage;
+$sql .= " LIMIT ? OFFSET ?";
+$params[] = $perPage;
+$params[] = $offset;
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
@@ -110,7 +139,7 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
         }
     }
 }
-$addMode = isset($_GET['action']) && $_GET['action'] === 'add';
+$addMode = isset($_GET['action']) && $_GET['action'] === 'add' && empty($message);
 ?>
 
 <?php include __DIR__ . '/includes/header.php'; ?>
@@ -176,12 +205,17 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add';
             <i class="ph ph-users"></i>
             Members List
             <span style="font-size: 0.875rem; font-weight: normal; color: var(--text-muted);">
-                (<?php echo count($members); ?> found)
+                (<?php echo $totalMembers; ?> found)
             </span>
         </h3>
-        <a href="api/export_members.php" class="btn btn-sm btn-secondary">
-            <i class="ph ph-download"></i> Export
-        </a>
+        <div style="display: flex; gap: 0.5rem;">
+            <button type="button" class="btn btn-sm btn-primary" onclick="openMemberModal()">
+                <i class="ph ph-plus"></i> Add Member
+            </button>
+            <a href="api/export_members.php" class="btn btn-sm btn-secondary">
+                <i class="ph ph-download"></i> Export
+            </a>
+        </div>
     </div>
     <div class="card-body">
         <!-- Desktop Table View -->
@@ -303,13 +337,30 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add';
                 </div>
             <?php endforeach; ?>
         </div>
+        
+        <!-- Pagination UI -->
+        <?php if ($totalPages > 1): ?>
+            <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem;" class="pagination-container">
+                <?php if ($page > 1): ?>
+                    <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $page - 1])); ?>" class="btn btn-sm btn-secondary">Previous</a>
+                <?php endif; ?>
+                
+                <span style="padding: 0.5rem 1rem; background: var(--bg-secondary); border-radius: var(--radius);">
+                    Page <?php echo $page; ?> of <?php echo $totalPages; ?>
+                </span>
+                
+                <?php if ($page < $totalPages): ?>
+                    <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $page + 1])); ?>" class="btn btn-sm btn-secondary">Next</a>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
 <!-- Add Member Modal -->
-<div id="addMemberModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-    <div class="modal-content" style="background: var(--card-bg); border-radius: var(--radius-lg); max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-        <div class="modal-header" style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+<div id="addMemberModal" class="modal" style="display: <?php echo $addMode ? 'flex' : 'none'; ?>; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-backdrop, rgba(0,0,0,0.75)); background-color: var(--modal-backdrop, rgba(0,0,0,0.75)); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div class="modal-content" style="background: var(--card-bg, #161616); background-color: var(--card-bg, #161616); color: var(--text-primary); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+        <div class="modal-header" style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
             <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem;">
                 <i class="ph ph-user-plus" style="color: var(--primary);"></i>
                 Add New Member
@@ -367,14 +418,14 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add';
                            style="padding: 0.75rem; border-radius: var(--radius-md);">
                 </div>
                 
-                <div style="background: rgba(99, 102, 241, 0.1); padding: 1rem; border-radius: var(--radius-md); margin-top: 1rem;">
+                <div style="background: var(--divine-glow); border: 1px solid rgba(201, 162, 39, 0.25); padding: 1rem; border-radius: var(--radius-md); margin-top: 1rem;">
                     <p style="margin: 0; font-size: 0.875rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem;">
                         <i class="ph ph-info" style="color: var(--primary);"></i>
                         QR Code will be auto-generated when you save.
                     </p>
                 </div>
             </div>
-            <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; gap: 0.75rem; justify-content: flex-end;">
+            <div class="modal-footer" style="padding: 1rem 1.5rem; display: flex; gap: 0.75rem; justify-content: flex-end;">
                 <button type="button" class="btn btn-secondary" onclick="closeMemberModal()">
                     <i class="ph ph-x"></i> Cancel
                 </button>
@@ -387,9 +438,9 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add';
 </div>
 
 <!-- Edit Member Modal -->
-<div id="editMemberModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-    <div class="modal-content" style="background: var(--card-bg); border-radius: var(--radius-lg); max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-        <div class="modal-header" style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+<div id="editMemberModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-backdrop, rgba(0,0,0,0.75)); background-color: var(--modal-backdrop, rgba(0,0,0,0.75)); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div class="modal-content" style="background: var(--card-bg, #161616); background-color: var(--card-bg, #161616); color: var(--text-primary); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+        <div class="modal-header" style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
             <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem;">
                 <i class="ph ph-user-gear" style="color: var(--primary);"></i>
                 Edit Member
@@ -466,7 +517,7 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add';
                     <small style="color: var(--text-muted);">QR Token is auto-generated and cannot be changed</small>
                 </div>
             </div>
-            <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; gap: 0.75rem; justify-content: flex-end;">
+            <div class="modal-footer" style="padding: 1rem 1.5rem; display: flex; gap: 0.75rem; justify-content: flex-end;">
                 <button type="button" class="btn btn-secondary" onclick="closeEditModal()">
                     <i class="ph ph-x"></i> Cancel
                 </button>

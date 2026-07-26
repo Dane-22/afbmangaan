@@ -4,6 +4,7 @@
  */
 
 $pageTitle = 'Dashboard';
+$loadChartJs = true;
 require_once __DIR__ . '/includes/auth_check.php';
 require_once __DIR__ . '/functions/attendance_logic.php';
 require_once __DIR__ . '/functions/activity_logger.php';

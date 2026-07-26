@@ -54,6 +54,7 @@ function initActivitiesShowcase() {
     const cards = Array.from(track.querySelectorAll('.activity-card'));
     if (!cards.length) return;
 
+    const getNavHeight = () => document.querySelector('.nav')?.offsetHeight || 80;
     const clamp01 = gsap.utils.clamp(0, 1);
 
     function getScrollDistance() {
@@ -68,11 +69,12 @@ function initActivitiesShowcase() {
 
     const showcaseTrigger = ScrollTrigger.create({
         trigger: container,
-        start: 'top top',
+        start: () => `top ${getNavHeight()}px`,
         end: () => `+=${getScrollDistance()}`,
         pin: true,
         scrub: 1,
         anticipatePin: 1,
+        invalidateOnRefresh: true,
         animation: scrollTween,
         onUpdate: () => {
             const viewportCenter = window.innerWidth / 2;

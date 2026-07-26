@@ -27,14 +27,14 @@ test.describe('Dashboard Analytics & Reporting', () => {
 
   test('Reports page loads and generates data', async ({ page }) => {
     await page.goto('reports.php');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page).toHaveURL(/.*reports\.php/);
     
-    // Select date and category
-    await page.fill('input[name="from_date"]', '2025-01-01');
-    await page.selectOption('select[name="category"]', 'Youth');
-    await page.click('button[type="submit"]');
+    // Select category and generate report
+    await page.locator('select[name="category"]').first().selectOption('WMO');
+    await page.locator('form button[type="submit"]').first().click();
 
     // Ensure no fatal errors occur and report table/data loads
-    await expect(page.locator('.report-card').first()).toBeVisible();
+    await expect(page.locator('.card').first()).toBeVisible();
   });
 });

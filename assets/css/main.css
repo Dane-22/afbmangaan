@@ -25,6 +25,8 @@
     --bg-secondary: #f5f3ef;
     --bg-tertiary: #ebe8e2;
     --bg-sidebar: #1a1a1a;
+    --card-bg: #ffffff;
+    --modal-backdrop: rgba(15, 23, 42, 0.65);
     
     /* Text Colors */
     --text-primary: #1a1a1a;
@@ -78,6 +80,8 @@
     --bg-secondary: #161616;
     --bg-tertiary: #1f1f1f;
     --bg-sidebar: #0a0a0a;
+    --card-bg: #161616;
+    --modal-backdrop: rgba(0, 0, 0, 0.75);
     
     --text-primary: #f5f3ef;
     --text-secondary: #b8b4ab;
@@ -2052,3 +2056,55 @@ textarea.form-control {
         visibility: visible !important;
     }
 }
+
+/* ================================
+   Modal Component Styles
+   ================================ */
+.modal {
+    background: var(--modal-backdrop, rgba(0, 0, 0, 0.75)) !important;
+    background-color: var(--modal-backdrop, rgba(0, 0, 0, 0.75)) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    transition: all var(--transition, 300ms ease);
+}
+
+.modal-content {
+    background: var(--card-bg, #ffffff) !important;
+    background-color: var(--card-bg, #ffffff) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-primary, #e2e8f0) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45) !important;
+    opacity: 1 !important;
+    transition: all var(--transition, 300ms ease);
+}
+
+[data-theme="dark"] .modal-content {
+    background: var(--card-bg, #161616) !important;
+    background-color: var(--card-bg, #161616) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-primary, #2a2a2a) !important;
+}
+
+.modal-header {
+    background: transparent !important;
+    border-bottom: 1px solid var(--border-primary, #e2e8f0) !important;
+}
+
+[data-theme="dark"] .modal-header {
+    border-bottom-color: var(--border-primary, #2a2a2a) !important;
+}
+
+.modal-body {
+    background: transparent !important;
+}
+
+.modal-footer {
+    background: transparent !important;
+    border-top: 1px solid var(--border-primary, #e2e8f0) !important;
+}
+
+[data-theme="dark"] .modal-footer {
+    border-top-color: var(--border-primary, #2a2a2a) !important;
+}
+
+

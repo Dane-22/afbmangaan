@@ -26,97 +26,63 @@ $absentCount = 0;
 $church = $_SESSION['church'] ?? 'AFB Mangaan';
 
 if ($viewMode === 'week') {
-    // Get all events for the current week
     $weekStart = date('Y-m-d', strtotime('monday this week', strtotime($selectedDate)));
     $weekEnd = date('Y-m-d', strtotime('sunday this week', strtotime($selectedDate)));
     
-    $stmt = $pdo->prepare("SELECT * FROM events WHERE church = ? AND start_date BETWEEN ? AND ? ORDER BY start_date, event_time ASC");
+    $stmt = $pdo->prepare("SELECT id FROM events WHERE church = ? AND start_date BETWEEN ? AND ? ORDER BY start_date, event_time ASC");
     $stmt->execute([$church, $weekStart, $weekEnd]);
     $events = $stmt->fetchAll();
     
-    // Get attendance for all events in the week
-    foreach ($events as $event) {
-        $attendance = getEventAttendance($event['id']);
-        foreach ($attendance as $record) {
-            $record['event_name'] = $event['event_name'];
-            $record['event_date'] = $event['start_date'];
-            $attendanceData[] = $record;
-            $totalRecords++;
-            if ($record['status'] === 'Present') {
-                $presentCount++;
-            } elseif ($record['status'] === 'Absent') {
-                $absentCount++;
-            }
-        }
+    $eventIds = array_column($events, 'id');
+    if (!empty($eventIds)) {
+        $attendanceData = getBulkEventsAttendance($eventIds);
     }
 } elseif ($viewMode === 'month') {
-    // Get all events for the selected month
     $monthStart = date('Y-m-01', strtotime($selectedDate));
     $monthEnd = date('Y-m-t', strtotime($selectedDate));
     
-    $stmt = $pdo->prepare("SELECT * FROM events WHERE church = ? AND start_date BETWEEN ? AND ? ORDER BY start_date, event_time ASC");
+    $stmt = $pdo->prepare("SELECT id FROM events WHERE church = ? AND start_date BETWEEN ? AND ? ORDER BY start_date, event_time ASC");
     $stmt->execute([$church, $monthStart, $monthEnd]);
     $events = $stmt->fetchAll();
     
-    // Get attendance for all events in the month
-    foreach ($events as $event) {
-        $attendance = getEventAttendance($event['id']);
-        foreach ($attendance as $record) {
-            $record['event_name'] = $event['event_name'];
-            $record['event_date'] = $event['start_date'];
-            $attendanceData[] = $record;
-            $totalRecords++;
-            if ($record['status'] === 'Present') {
-                $presentCount++;
-            } elseif ($record['status'] === 'Absent') {
-                $absentCount++;
-            }
-        }
+    $eventIds = array_column($events, 'id');
+    if (!empty($eventIds)) {
+        $attendanceData = getBulkEventsAttendance($eventIds);
     }
 } else {
-    // Day view - Get events for selected date only
-    $stmt = $pdo->prepare("SELECT * FROM events WHERE church = ? AND start_date = ? ORDER BY event_time ASC");
+    // Day view
+    $stmt = $pdo->prepare("SELECT id FROM events WHERE church = ? AND start_date = ? ORDER BY event_time ASC");
     $stmt->execute([$church, $selectedDate]);
     $events = $stmt->fetchAll();
     
-    // Get attendance data for selected event or all events on this date
     if ($selectedEventId === 'all') {
-        foreach ($events as $event) {
-            $attendance = getEventAttendance($event['id']);
-            foreach ($attendance as $record) {
-                $record['event_name'] = $event['event_name'];
-                $record['event_date'] = $event['start_date'] ?? $event['event_date'] ?? $selectedDate;
-                $attendanceData[] = $record;
-                $totalRecords++;
-                if ($record['status'] === 'Present') {
-                    $presentCount++;
-                } elseif ($record['status'] === 'Absent') {
-                    $absentCount++;
-                }
-            }
+        $eventIds = array_column($events, 'id');
+        if (!empty($eventIds)) {
+            $attendanceData = getBulkEventsAttendance($eventIds);
         }
-    } elseif ($selectedEventId) {
-        $attendance = getEventAttendance($selectedEventId);
-        // Get event details
-        $stmt = $pdo->prepare("SELECT * FROM events WHERE id = ?");
-        $stmt->execute([$selectedEventId]);
-        $event = $stmt->fetch();
-        foreach ($attendance as $record) {
-            $record['event_name'] = $event['event_name'] ?? 'Unknown';
-            $record['event_date'] = $event['start_date'] ?? $event['event_date'] ?? $selectedDate;
-            $attendanceData[] = $record;
-            $totalRecords++;
-            if ($record['status'] === 'Present') {
-                $presentCount++;
-            } elseif ($record['status'] === 'Absent') {
-                $absentCount++;
-            }
+    } elseif ($selectedEventId && is_numeric($selectedEventId)) {
+        $attendanceData = getEventAttendance($selectedEventId);
+        $singleEvent = getEventById($selectedEventId);
+        foreach ($attendanceData as &$rec) {
+            $rec['event_name'] = $singleEvent['event_name'] ?? 'Unknown';
+            $rec['event_date'] = $singleEvent['start_date'] ?? $selectedDate;
         }
+        unset($rec);
     }
 }
 
-// Get ALL events for dropdown filter - filtered by church
-$stmt = $pdo->prepare("SELECT * FROM events WHERE church = ? ORDER BY start_date DESC, event_time ASC");
+// Calculate totals from attendance data
+$totalRecords = count($attendanceData);
+foreach ($attendanceData as $record) {
+    if ($record['status'] === 'Present') {
+        $presentCount++;
+    } elseif ($record['status'] === 'Absent') {
+        $absentCount++;
+    }
+}
+
+// Get recent events for dropdown filter (limit 100 for speed)
+$stmt = $pdo->prepare("SELECT id, event_name, start_date, event_time FROM events WHERE church = ? ORDER BY start_date DESC, event_time ASC LIMIT 100");
 $stmt->execute([$church]);
 $allEvents = $stmt->fetchAll();
 

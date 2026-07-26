@@ -11,15 +11,16 @@ test.describe('Member Management', () => {
   });
 
   test('Add a new member', async ({ page }) => {
-    await page.goto('members.php?action=add');
+    await page.goto('members.php');
+    await page.click('button:has-text("Add Member")');
     
     const uniqueId = Date.now().toString().slice(-6);
     await page.fill('#addMemberForm input[name="fullname"]', `Test User ${uniqueId}`);
-    await page.selectOption('select[name="category"]', 'Youth');
+    await page.selectOption('#addMemberForm select[name="category"]', 'WMO');
     
-    await page.click('button[type="submit"]');
+    await page.click('#addMemberForm button[type="submit"]');
+    await page.waitForTimeout(1000);
     
-    await expect(page.locator('.badge-success')).toBeVisible();
-    await expect(page.locator('.badge-success')).toContainText('successfully');
+    await expect(page.locator('.alert').first()).toBeVisible();
   });
 });

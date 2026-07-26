@@ -7,20 +7,18 @@ $pageTitle = 'Attendance';
 require_once __DIR__ . '/includes/auth_check.php';
 require_once __DIR__ . '/functions/attendance_logic.php';
 
-// Get selected event
+// Get all events for dropdown
+$events = getEvents(['status' => null]);
+$todayEvent = getTodayEvent();
+
+// Get selected event details
 $eventId = $_GET['event_id'] ?? null;
 $selectedEvent = null;
 $attendanceMap = [];
+$members = [];
 
 if ($eventId) {
-    $selectedEvent = getEvents(['status' => null])[0] ?? null;
-    foreach (getEvents() as $e) {
-        if ($e['id'] == $eventId) {
-            $selectedEvent = $e;
-            break;
-        }
-    }
-    
+    $selectedEvent = getEventById($eventId);
     if ($selectedEvent) {
         // Get existing attendance records
         $attendance = getEventAttendance($eventId);
@@ -38,10 +36,6 @@ if ($eventId) {
         $members = $stmt->fetchAll();
     }
 }
-
-// Get all events for dropdown
-$events = getEvents(['status' => null]);
-$todayEvent = getTodayEvent();
 ?>
 
 <?php include __DIR__ . '/includes/header.php'; ?>

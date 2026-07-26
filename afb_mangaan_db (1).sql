@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Jul 24, 2026 at 12:15 AM
+-- Generation Time: Jul 25, 2026 at 10:20 AM
 -- Server version: 9.1.0
 -- PHP Version: 8.3.14
 
@@ -42,8 +42,9 @@ CREATE TABLE IF NOT EXISTS `attendance_logs` (
   KEY `attendee_id` (`attendee_id`),
   KEY `logged_by` (`logged_by`),
   KEY `idx_log_time` (`log_time`),
-  KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `idx_status` (`status`),
+  KEY `idx_event_status` (`event_id`,`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -56,7 +57,7 @@ CREATE TABLE IF NOT EXISTS `attendees` (
   `id` int NOT NULL AUTO_INCREMENT,
   `church` enum('AFB Mangaan','AFB Lettac Sur') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'AFB Mangaan',
   `fullname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `category` enum('MCYO','WMO','CCMO','KIDS') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'WMO',
+  `category` enum('MCYO','WMO','CCMO','KIDS','Visitors','Other') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'WMO',
   `contact` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `qr_token` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Unique QR code identifier',
@@ -68,7 +69,7 @@ CREATE TABLE IF NOT EXISTS `attendees` (
   KEY `idx_church` (`church`),
   KEY `idx_category` (`category`),
   KEY `idx_status` (`status`),
-  KEY `idx_qr_token` (`qr_token`)
+  KEY `idx_church_status_name` (`church`,`status`,`fullname`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -76,11 +77,11 @@ CREATE TABLE IF NOT EXISTS `attendees` (
 --
 
 INSERT INTO `attendees` (`id`, `church`, `fullname`, `category`, `contact`, `email`, `qr_token`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'AFB Mangaan', 'Juan Dela Cruz', '', '09123456789', 'juan@email.com', 'AFB001001', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
-(2, 'AFB Mangaan', 'Maria Santos', '', '09187654321', 'maria@email.com', 'AFB001002', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
-(3, 'AFB Mangaan', 'Pedro Penduko', '', '09111222333', 'pedro@email.com', 'AFB001003', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
-(4, 'AFB Mangaan', 'Ana Makiling', '', '09444555666', 'ana@email.com', 'AFB001004', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
-(5, 'AFB Mangaan', 'Diego Silang', '', '09777888999', 'diego@email.com', 'AFB001005', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56');
+(1, 'AFB Mangaan', 'Juan Dela Cruz', 'WMO', '09123456789', 'juan@email.com', 'AFB001001', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
+(2, 'AFB Mangaan', 'Maria Santos', 'WMO', '09187654321', 'maria@email.com', 'AFB001002', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
+(3, 'AFB Mangaan', 'Pedro Penduko', 'WMO', '09111222333', 'pedro@email.com', 'AFB001003', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
+(4, 'AFB Mangaan', 'Ana Makiling', 'WMO', '09444555666', 'ana@email.com', 'AFB001004', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
+(5, 'AFB Mangaan', 'Diego Silang', 'WMO', '09777888999', 'diego@email.com', 'AFB001005', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56');
 
 -- --------------------------------------------------------
 
@@ -109,8 +110,9 @@ CREATE TABLE IF NOT EXISTS `events` (
   KEY `idx_start_date` (`start_date`),
   KEY `idx_end_date` (`end_date`),
   KEY `idx_status` (`status`),
-  KEY `idx_type` (`type`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `idx_type` (`type`),
+  KEY `idx_church_start_date` (`church`,`start_date`,`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `events`
@@ -121,7 +123,8 @@ INSERT INTO `events` (`id`, `church`, `event_name`, `start_date`, `end_date`, `e
 (2, 'AFB Mangaan', 'Midweek Prayer Meeting', '2026-02-09', NULL, '19:00:00', 'Fellowship Hall', 'Midweek Service', 'Completed', 'Wednesday prayer and Bible study', 1, '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
 (3, 'AFB Mangaan', 'Youth Fellowship Night', '2026-02-11', NULL, '18:00:00', 'Youth Room', 'Special Event', 'Completed', 'Monthly youth gathering', 1, '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
 (4, 'AFB Mangaan', 'Sunday Worship Service', '2026-02-12', NULL, '09:00:00', 'Main Sanctuary', 'Sunday Service', 'Ongoing', 'Regular Sunday worship service', 1, '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
-(5, 'AFB Mangaan', 'Christmas Special', '2026-02-26', '2026-02-28', '18:00:00', 'Main Sanctuary', 'Special Event', 'Upcoming', 'Christmas celebration and dinner', 1, '2026-02-12 03:34:56', '2026-02-12 03:34:56');
+(5, 'AFB Mangaan', 'Christmas Special', '2026-02-26', '2026-02-28', '18:00:00', 'Main Sanctuary', 'Special Event', 'Upcoming', 'Christmas celebration and dinner', 1, '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
+(6, 'AFB Mangaan', 'Test Event Lang ito', '2026-07-26', '2026-07-26', '09:00:00', 'Mangaan, Santol, La Union, Ilocos, PHL', 'Sunday Service', 'Upcoming', '', 1, '2026-07-24 00:19:10', '2026-07-24 00:19:10');
 
 -- --------------------------------------------------------
 
@@ -142,7 +145,7 @@ CREATE TABLE IF NOT EXISTS `system_logs` (
   KEY `user_id` (`user_id`),
   KEY `idx_action` (`action`),
   KEY `idx_timestamp` (`timestamp`)
-) ENGINE=InnoDB AUTO_INCREMENT=2811 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2824 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `system_logs`
@@ -2965,7 +2968,20 @@ INSERT INTO `system_logs` (`id`, `user_id`, `action`, `details`, `ip_address`, `
 (2807, 1, 'LOGIN', 'User admin logged in successfully (AFB Mangaan)', '127.0.0.1', 'k6/0.56.0 (https://k6.io/)', '2026-07-23 07:48:34'),
 (2808, 1, 'LOGIN', 'User admin logged in successfully (AFB Mangaan)', '127.0.0.1', 'k6/0.56.0 (https://k6.io/)', '2026-07-23 07:48:34'),
 (2809, 1, 'LOGIN', 'User admin logged in successfully (AFB Mangaan)', '127.0.0.1', 'k6/0.56.0 (https://k6.io/)', '2026-07-23 07:48:34'),
-(2810, 1, 'LOGIN', 'User admin logged in successfully (AFB Mangaan)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', '2026-07-24 00:14:18');
+(2810, 1, 'LOGIN', 'User admin logged in successfully (AFB Mangaan)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', '2026-07-24 00:14:18'),
+(2811, NULL, 'ATTENDANCE_RECORD', 'Recorded attendance for event 3, attendee 4 as Present', '::1', 'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36', '2026-07-24 00:18:08'),
+(2812, NULL, 'ATTENDANCE_RECORD', 'Recorded attendance for event 3, attendee 5 as Present', '::1', 'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36', '2026-07-24 00:18:10'),
+(2813, NULL, 'ATTENDANCE_RECORD', 'Recorded attendance for event 3, attendee 1 as Absent', '::1', 'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36', '2026-07-24 00:18:11'),
+(2814, 1, 'EVENT_CREATE', 'Created event: Test Event Lang ito', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', '2026-07-24 00:19:10'),
+(2815, NULL, 'ATTENDANCE_RECORD', 'Recorded attendance for event 5, attendee 5 as Present', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', '2026-07-24 00:19:41'),
+(2816, NULL, 'ATTENDANCE_RECORD', 'Recorded attendance for event 5, attendee 4 as Present', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', '2026-07-24 00:19:41'),
+(2817, NULL, 'ATTENDANCE_RECORD', 'Recorded attendance for event 5, attendee 2 as Present', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', '2026-07-24 00:19:41'),
+(2818, NULL, 'ATTENDANCE_RECORD', 'Recorded attendance for event 5, attendee 3 as Present', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', '2026-07-24 00:19:41'),
+(2819, NULL, 'ATTENDANCE_RECORD', 'Recorded attendance for event 5, attendee 1 as Present', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', '2026-07-24 00:19:41'),
+(2820, 1, 'LOGIN', 'User admin logged in successfully (AFB Mangaan)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', '2026-07-24 02:24:23'),
+(2821, 3, 'LOGIN', 'User admin logged in successfully (AFB Lettac Sur)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', '2026-07-24 02:25:16'),
+(2822, 1, 'LOGIN', 'User admin logged in successfully (AFB Mangaan)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', '2026-07-25 08:10:14'),
+(2823, 1, 'LOGIN', 'User admin logged in successfully (AFB Mangaan)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', '2026-07-25 10:13:30');
 
 -- --------------------------------------------------------
 

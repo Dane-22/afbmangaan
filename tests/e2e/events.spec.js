@@ -17,12 +17,10 @@ test.describe('Event Management', () => {
     await page.fill('input[name="event_name"]', eventName);
     await page.fill('input[name="start_date"]', '2025-12-31');
     await page.fill('input[name="event_time"]', '10:00');
-    await page.selectOption('select[name="type"]', 'Sunday Service');
-    
-    await page.click('button[type="submit"]');
+    await page.click('form[action=""] button[type="submit"]');
     
     // Should show success message and redirect back to events list
-    await expect(page.locator('.badge-success')).toBeVisible();
-    await expect(page.locator('.badge-success')).toContainText('created successfully');
+    await expect(page.locator('.alert.badge-success')).toBeVisible();
+    await expect(page.locator('.alert.badge-success')).toContainText('successfully');
   });
 });

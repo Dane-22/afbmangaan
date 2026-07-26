@@ -117,6 +117,15 @@ function getEvents($filters = []) {
     
     $sql .= " ORDER BY e.start_date DESC, e.event_time DESC";
     
+    if (isset($filters['limit'])) {
+        $sql .= " LIMIT ?";
+        $params[] = (int)$filters['limit'];
+        if (isset($filters['offset'])) {
+            $sql .= " OFFSET ?";
+            $params[] = (int)$filters['offset'];
+        }
+    }
+    
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     
@@ -138,6 +147,44 @@ function getEventAttendance($eventId) {
         WHERE al.event_id = ? AND e.church = ? AND a.church = ?
         ORDER BY al.log_time DESC");
     $stmt->execute([$eventId, $church, $church]);
+    
+    return $stmt->fetchAll();
+}
+
+/**
+ * Get single event by ID (filtered by church)
+ */
+function getEventById($eventId) {
+    if (!$eventId) return null;
+    $pdo = getDB();
+    $church = $_SESSION['church'] ?? 'AFB Mangaan';
+    
+    $stmt = $pdo->prepare("SELECT e.*, u.fullname as created_by_name FROM events e LEFT JOIN users u ON e.created_by = u.id WHERE e.id = ? AND e.church = ? LIMIT 1");
+    $stmt->execute([$eventId, $church]);
+    
+    return $stmt->fetch();
+}
+
+/**
+ * Get attendance records for multiple events in a single batch query (Eliminates N+1 loop)
+ */
+function getBulkEventsAttendance($eventIds) {
+    if (empty($eventIds)) return [];
+    $pdo = getDB();
+    $church = $_SESSION['church'] ?? 'AFB Mangaan';
+    
+    $placeholders = str_repeat('?,', count($eventIds) - 1) . '?';
+    $sql = "SELECT al.*, a.fullname, a.category, a.contact, a.qr_token, u.fullname as logged_by_name, e.event_name, e.start_date as event_date
+        FROM attendance_logs al 
+        JOIN attendees a ON al.attendee_id = a.id 
+        JOIN events e ON al.event_id = e.id
+        LEFT JOIN users u ON al.logged_by = u.id 
+        WHERE al.event_id IN ($placeholders) AND e.church = ? AND a.church = ?
+        ORDER BY e.start_date DESC, al.log_time DESC";
+        
+    $params = array_merge($eventIds, [$church, $church]);
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     
     return $stmt->fetchAll();
 }
@@ -185,12 +232,12 @@ function getRetentionStats($months = 3) {
     $pdo = getDB();
     $church = $_SESSION['church'] ?? 'AFB Mangaan';
     
-    // Get events in date range first
+    // Get events in date range first (past or recent events)
     $eventStmt = $pdo->prepare("
         SELECT id, start_date 
         FROM events 
         WHERE start_date >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
-        AND status = 'Completed'
+        AND start_date <= CURDATE()
         AND church = ?
     ");
     $eventStmt->execute([$months, $church]);
