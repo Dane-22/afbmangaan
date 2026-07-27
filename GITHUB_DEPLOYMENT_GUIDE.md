@@ -29,51 +29,30 @@ git push origin main
 
 ---
 
-## Step 2: Pulling Changes on Your Linux Server (`srv1313830`)
+## Step 2: Pulling Changes on Your Production Server (`srv1313830`)
 
-### Option A: If your website folder ALREADY exists on the server
+### 1. Navigate into the web directory
+```bash
+cd /var/www/html
+```
 
-1. **Find where your website directory is located on the server**:
-   Run one of these commands on your server:
-   ```bash
-   find /var/www -maxdepth 3 -type d -name "*afb*" 2>/dev/null
-   ```
-   *Common locations:*
-   - Ubuntu / Debian: `/var/www/html/afbmangaan` or `/var/www/afbmangaan`
-   - cPanel: `/home/USERNAME/public_html` or `/var/www/html`
+### 2. Configure Git Safe Directory (REQUIRED on Linux Servers)
+Run this command to resolve Git owner permission warnings on Linux:
+```bash
+git config --global --add safe.directory /var/www/html
+```
 
-2. **Navigate into the project directory**:
-   ```bash
-   cd /var/www/html/afbmangaan
-   ```
-   *(Replace `/var/www/html/afbmangaan` with your actual folder path found in step 1)*
+### 3. Pull the latest code from GitHub
+```bash
+git fetch origin
+git pull origin main
+```
 
-3. **Pull the latest code from GitHub**:
-   ```bash
-   git fetch origin
-   git pull origin main
-   ```
-
----
-
-### Option B: If the website is NOT YET cloned on the server (First-time Setup)
-
-If you haven't cloned the Git repository on the server yet:
-
-1. **Navigate to the web root directory**:
-   ```bash
-   cd /var/www/html
-   ```
-
-2. **Clone the repository from GitHub**:
-   ```bash
-   git clone https://github.com/Dane-22/afbmangaan.git
-   ```
-
-3. **Navigate into the cloned repository**:
-   ```bash
-   cd afbmangaan
-   ```
+### 4. Verify local status
+```bash
+git status
+```
+*Expected Output:* `Your branch is up to date with 'origin/main'.`
 
 ---
 
@@ -90,19 +69,27 @@ mysql -u root -p afb_mangaan_db < schema_update.sql
 1. Open **phpMyAdmin**.
 2. Select your database (`afb_mangaan_db`).
 3. Click the **SQL** tab.
-4. Copy the contents of [schema_update.sql](file:///c:/wamp64/www/afbmangaan/schema_update.sql) and paste it into the query box, then click **Go**.
+4. Copy the entire contents of [schema_update.sql](file:///c:/wamp64/www/afbmangaan/schema_update.sql), paste into the editor, and click **Go**.
 
 ---
 
-## Troubleshooting & Useful Server Commands
+## First-Time Server Setup (If repository is NOT YET cloned)
 
-### How to check where Apache / Nginx points on your server
+If setting up a brand-new server without Git initialized:
+
 ```bash
-grep -rn "DocumentRoot" /etc/apache2/ /etc/httpd/ /etc/nginx/ 2>/dev/null
+cd /var/www
+git clone https://github.com/Dane-22/afbmangaan.git html
+cd html
+git config --global --add safe.directory /var/www/html
 ```
 
+---
+
+## Troubleshooting & Server Command Reference
+
 ### If Git throws "fatal: detected dubious ownership in repository"
-Run this command once on your server to allow Git access:
+Run this command once:
 ```bash
 git config --global --add safe.directory /var/www/html
 ```
@@ -111,4 +98,9 @@ git config --global --add safe.directory /var/www/html
 ```bash
 git stash
 git pull origin main
+```
+
+### Check recent commit history on server
+```bash
+git log -n 5 --oneline
 ```
