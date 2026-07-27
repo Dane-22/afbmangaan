@@ -74,3 +74,34 @@ SET @preparedStatement = (SELECT IF(
 PREPARE addIdx3 FROM @preparedStatement;
 EXECUTE addIdx3;
 DEALLOCATE PREPARE addIdx3;
+
+-- 7. Create categories table for dynamic category management
+CREATE TABLE IF NOT EXISTS `categories` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `church` VARCHAR(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'AFB Mangaan',
+  `name` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_church_category` (`church`, `name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO `categories` (`church`, `name`) VALUES
+('AFB Mangaan', 'MCYO'),
+('AFB Mangaan', 'WMO'),
+('AFB Mangaan', 'CCMO'),
+('AFB Mangaan', 'KIDS'),
+('AFB Mangaan', 'Visitors'),
+('AFB Mangaan', 'Pastors'),
+('AFB Mangaan', 'Leaders'),
+('AFB Mangaan', 'Ministers'),
+('AFB Mangaan', 'Other'),
+('AFB Lettac Sur', 'MCYO'),
+('AFB Lettac Sur', 'WMO'),
+('AFB Lettac Sur', 'CCMO'),
+('AFB Lettac Sur', 'KIDS'),
+('AFB Lettac Sur', 'Visitors'),
+('AFB Lettac Sur', 'Pastors'),
+('AFB Lettac Sur', 'Leaders'),
+('AFB Lettac Sur', 'Ministers'),
+('AFB Lettac Sur', 'Other');
+

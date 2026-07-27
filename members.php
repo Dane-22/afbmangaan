@@ -49,16 +49,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = 'Error saving member: ' . $e->getMessage();
             }
         } elseif ($action === 'delete' && isset($_POST['id'])) {
-        $pdo = getDB();
-        try {
-            $stmt = $pdo->prepare("UPDATE attendees SET status='Archived' WHERE id=?");
-            $stmt->execute([$_POST['id']]);
-            $message = 'Member archived successfully';
-            logActivity($_SESSION['user_id'], 'MEMBER_ARCHIVE', "Archived member ID: {$_POST['id']}");
-        } catch (PDOException $e) {
-            $error = 'Error archiving member';
+            $pdo = getDB();
+            try {
+                $stmt = $pdo->prepare("UPDATE attendees SET status='Archived' WHERE id=?");
+                $stmt->execute([$_POST['id']]);
+                $message = 'Member archived successfully';
+                logActivity($_SESSION['user_id'], 'MEMBER_ARCHIVE', "Archived member ID: {$_POST['id']}");
+            } catch (PDOException $e) {
+                $error = 'Error archiving member';
+            }
+        } elseif ($action === 'add_category') {
+            $pdo = getDB();
+            $categoryName = trim($_POST['category_name'] ?? '');
+            if ($categoryName !== '') {
+                try {
+                    $stmt = $pdo->prepare("INSERT IGNORE INTO categories (church, name) VALUES (?, ?)");
+                    $stmt->execute([$_SESSION['church'] ?? 'AFB Mangaan', $categoryName]);
+                    $message = 'Category "' . htmlspecialchars($categoryName) . '" added successfully';
+                    logActivity($_SESSION['user_id'], 'CATEGORY_CREATE', "Created category: {$categoryName}");
+                } catch (PDOException $e) {
+                    $error = 'Error adding category: ' . $e->getMessage();
+                }
+            } else {
+                $error = 'Category name cannot be empty';
+            }
         }
-    }
     }
 }
 
@@ -125,8 +140,19 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $members = $stmt->fetchAll();
 
-// Get categories for filter
-$categories = ['MCYO', 'WMO', 'CCMO', 'KIDS', 'Visitors', 'Pastors', 'Leaders', 'Ministers', 'Other'];
+// Get categories dynamically from DB
+try {
+    $catStmt = $pdo->prepare("SELECT name FROM categories WHERE church = ? ORDER BY id ASC");
+    $catStmt->execute([$church]);
+    $categories = $catStmt->fetchAll(PDO::FETCH_COLUMN);
+} catch (PDOException $e) {
+    $categories = [];
+}
+
+// Fallback defaults if table is empty
+if (empty($categories)) {
+    $categories = ['MCYO', 'WMO', 'CCMO', 'KIDS', 'Visitors', 'Pastors', 'Leaders', 'Ministers', 'Other'];
+}
 
 // Predefined ministries list for Ministers category
 $ministries = [
@@ -203,6 +229,10 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add' && empty($message
                 <i class="ph ph-funnel"></i> Filter
             </button>
             
+            <button type="button" class="btn btn-secondary" onclick="openCategoryModal()">
+                <i class="ph ph-tag"></i> Add Category
+            </button>
+            
             <button type="button" class="btn btn-success" onclick="openMemberModal()">
                 <i class="ph ph-plus"></i> Add Member
             </button>
@@ -222,6 +252,9 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add' && empty($message
             </span>
         </h3>
         <div style="display: flex; gap: 0.5rem;">
+            <button type="button" class="btn btn-sm btn-secondary" onclick="openCategoryModal()">
+                <i class="ph ph-tag"></i> Add Category
+            </button>
             <button type="button" class="btn btn-sm btn-primary" onclick="openMemberModal()">
                 <i class="ph ph-plus"></i> Add Member
             </button>
@@ -584,6 +617,45 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add' && empty($message
     </div>
 </div>
 
+<!-- Add Category Modal -->
+<div id="addCategoryModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-backdrop, rgba(0,0,0,0.75)); background-color: var(--modal-backdrop, rgba(0,0,0,0.75)); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div class="modal-content" style="background: var(--card-bg, #161616); background-color: var(--card-bg, #161616); color: var(--text-primary); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); max-width: 450px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+        <div class="modal-header" style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem;">
+                <i class="ph ph-tag" style="color: var(--primary);"></i>
+                Add New Category
+            </h3>
+            <button type="button" onclick="closeCategoryModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s;">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+        <form method="POST" action="" id="addCategoryForm">
+            <div class="modal-body" style="padding: 1.5rem;">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
+                <input type="hidden" name="action" value="add_category">
+                
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.25rem;">
+                        <i class="ph ph-tag" style="color: var(--primary);"></i>
+                        Category Name *
+                    </label>
+                    <input type="text" name="category_name" class="form-control" required 
+                           placeholder="e.g., Young Adults, Deacons, Seniors"
+                           style="padding: 0.75rem; border-radius: var(--radius-md);">
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 1rem 1.5rem; display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">
+                    <i class="ph ph-x"></i> Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="ph ph-check"></i> Save Category
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function toggleMinistryField(type) {
     const categorySelect = document.getElementById(type + '_category');
@@ -630,15 +702,35 @@ function closeEditModal() {
     toggleMinistryField('edit');
 }
 
+function openCategoryModal() {
+    const modal = document.getElementById('addCategoryModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => {
+        document.querySelector('#addCategoryForm input[name="category_name"]').focus();
+    }, 100);
+}
+
+function closeCategoryModal() {
+    const modal = document.getElementById('addCategoryModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    document.getElementById('addCategoryForm').reset();
+}
+
 // Close modals on backdrop click
 window.addEventListener('click', function(event) {
     const addModal = document.getElementById('addMemberModal');
     const editModal = document.getElementById('editMemberModal');
+    const catModal = document.getElementById('addCategoryModal');
     if (event.target === addModal) {
         closeMemberModal();
     }
     if (event.target === editModal) {
         closeEditModal();
+    }
+    if (event.target === catModal) {
+        closeCategoryModal();
     }
 });
 
@@ -647,6 +739,7 @@ window.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeMemberModal();
         closeEditModal();
+        closeCategoryModal();
     }
 });
 

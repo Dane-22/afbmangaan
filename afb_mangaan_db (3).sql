@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Jul 26, 2026 at 12:33 PM
+-- Generation Time: Jul 27, 2026 at 12:51 AM
 -- Server version: 9.1.0
 -- PHP Version: 8.3.14
 
@@ -71,18 +71,18 @@ CREATE TABLE IF NOT EXISTS `attendees` (
   KEY `idx_category` (`category`),
   KEY `idx_status` (`status`),
   KEY `idx_church_status_name` (`church`,`status`,`fullname`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `attendees`
 --
 
-INSERT INTO `attendees` (`id`, `church`, `fullname`, `category`, `contact`, `email`, `qr_token`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'AFB Mangaan', 'Juan Dela Cruz', 'WMO', '09123456789', 'juan@email.com', 'AFB001001', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
-(2, 'AFB Mangaan', 'Maria Santos', 'WMO', '09187654321', 'maria@email.com', 'AFB001002', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
-(3, 'AFB Mangaan', 'Pedro Penduko', 'WMO', '09111222333', 'pedro@email.com', 'AFB001003', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
-(4, 'AFB Mangaan', 'Ana Makiling', 'WMO', '09444555666', 'ana@email.com', 'AFB001004', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
-(5, 'AFB Mangaan', 'Diego Silang', 'WMO', '09777888999', 'diego@email.com', 'AFB001005', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56');
+INSERT INTO `attendees` (`id`, `church`, `fullname`, `category`, `ministry`, `contact`, `email`, `qr_token`, `status`, `created_at`, `updated_at`) VALUES
+(1, 'AFB Mangaan', 'Juan Dela Cruz', 'WMO', NULL, '09123456789', 'juan@email.com', 'AFB001001', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
+(2, 'AFB Mangaan', 'Maria Santos', 'WMO', NULL, '09187654321', 'maria@email.com', 'AFB001002', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
+(3, 'AFB Mangaan', 'Pedro Penduko', 'WMO', NULL, '09111222333', 'pedro@email.com', 'AFB001003', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
+(4, 'AFB Mangaan', 'Ana Makiling', 'WMO', NULL, '09444555666', 'ana@email.com', 'AFB001004', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56'),
+(5, 'AFB Mangaan', 'Diego Silang', 'WMO', NULL, '09777888999', 'diego@email.com', 'AFB001005', 'Active', '2026-02-12 03:34:56', '2026-02-12 03:34:56');
 
 -- --------------------------------------------------------
 
@@ -215,7 +215,17 @@ CREATE TABLE IF NOT EXISTS `system_logs` (
   KEY `user_id` (`user_id`),
   KEY `idx_action` (`action`),
   KEY `idx_timestamp` (`timestamp`)
-) ENGINE=InnoDB AUTO_INCREMENT=2903 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2907 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `system_logs`
+--
+
+INSERT INTO `system_logs` (`id`, `user_id`, `action`, `details`, `ip_address`, `user_agent`, `timestamp`) VALUES
+(2903, 1, 'LOGIN', 'User admin logged in successfully (AFB Mangaan)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', '2026-07-27 00:14:24'),
+(2904, 1, 'LOGIN', 'User admin logged in successfully (AFB Mangaan)', 'unknown', 'unknown', '2026-07-27 00:29:28'),
+(2905, 1, 'LOGOUT', 'User admin logged out', 'unknown', 'unknown', '2026-07-27 00:29:28'),
+(2906, 1, 'LOGOUT', 'User admin logged out', '::1', 'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36', '2026-07-27 00:48:32');
 
 -- --------------------------------------------------------
 
@@ -249,6 +259,37 @@ INSERT INTO `users` (`id`, `church`, `username`, `password`, `fullname`, `role`,
 (2, 'AFB Mangaan', 'operator', '$2y$10$el4MBjzlFrv4qeg84lelu.VyToq63kMRilDwAM4vYt129l.Ptllp.', 'Mangaan Operator', 'operator', 'Active', 0, '2026-07-23 06:38:30', '2026-07-23 06:38:30'),
 (3, 'AFB Lettac Sur', 'admin', '$2y$10$pCHnPcELGAog/L/m35uT8.YIPwkYFuTLpIz5iNc/k7h53qPmzF.Fm', 'System Admin', 'admin', 'Active', 0, '2026-07-23 06:38:30', '2026-07-23 06:38:30'),
 (4, 'AFB Lettac Sur', 'operator', '$2y$10$el4MBjzlFrv4qeg84lelu.VyToq63kMRilDwAM4vYt129l.Ptllp.', 'Lettac Sur Operator', 'operator', 'Active', 0, '2026-07-23 06:38:30', '2026-07-23 06:38:30');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `categories`
+--
+
+DROP TABLE IF EXISTS `categories`;
+CREATE TABLE IF NOT EXISTS `categories` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `church` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'AFB Mangaan',
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_church_category` (`church`,`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `categories`
+--
+
+INSERT INTO `categories` (`church`, `name`) VALUES
+('AFB Mangaan', 'MCYO'),
+('AFB Mangaan', 'WMO'),
+('AFB Mangaan', 'CCMO'),
+('AFB Mangaan', 'KIDS'),
+('AFB Mangaan', 'Visitors'),
+('AFB Mangaan', 'Pastors'),
+('AFB Mangaan', 'Leaders'),
+('AFB Mangaan', 'Ministers'),
+('AFB Mangaan', 'Other');
 
 --
 -- Constraints for dumped tables
