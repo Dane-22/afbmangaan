@@ -101,6 +101,12 @@ mysql -u root -p afb_mangaan_db < schema_update.sql
 grep -rn "DocumentRoot" /etc/apache2/ /etc/httpd/ /etc/nginx/ 2>/dev/null
 ```
 
+### If Git throws "fatal: detected dubious ownership in repository"
+Run this command once on your server to allow Git access:
+```bash
+git config --global --add safe.directory /var/www/html
+```
+
 ### If `git pull` fails due to uncommitted local server changes
 ```bash
 git stash
