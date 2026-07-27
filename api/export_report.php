@@ -4,7 +4,7 @@
  * AFB Mangaan Attendance System
  */
 
-session_start();
+require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../includes/auth_check.php';
 require_once __DIR__ . '/../functions/report_engine.php';
 
@@ -81,15 +81,12 @@ function generatePDF($data, $from, $to) {
     
     require_once $autoloadPath;
     
-    use Dompdf\Dompdf;
-    use Dompdf\Options;
-    
-    $options = new Options();
+    $options = new \Dompdf\Options();
     $options->set('isHtml5ParserEnabled', true);
     $options->set('isPhpEnabled', false);
     $options->set('defaultFont', 'DejaVu Sans');
     
-    $dompdf = new Dompdf($options);
+    $dompdf = new \Dompdf\Dompdf($options);
     
     // Build HTML
     $html = '
@@ -206,20 +203,14 @@ function generateExcel($data, $from, $to) {
     
     require_once $autoloadPath;
     
-    use PhpOffice\PhpSpreadsheet\Spreadsheet;
-    use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-    use PhpOffice\PhpSpreadsheet\Style\Fill;
-    use PhpOffice\PhpSpreadsheet\Style\Font;
-    use PhpOffice\PhpSpreadsheet\Style\Alignment;
-    
-    $spreadsheet = new Spreadsheet();
+    $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
     
     // Title
     $sheet->setCellValue('A1', 'AFB Mangaan Attendance Report');
     $sheet->mergeCells('A1:K1');
     $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
-    $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
     
     // Subtitle
     $sheet->setCellValue('A2', 'Period: ' . ($from ?: 'All time') . ' to ' . ($to ?: 'Present'));
@@ -232,7 +223,7 @@ function generateExcel($data, $from, $to) {
     foreach ($headers as $header) {
         $sheet->setCellValueByColumnAndRow($col, 6, $header);
         $sheet->getStyleByColumnAndRow($col, 6)->getFont()->setBold(true);
-        $sheet->getStyleByColumnAndRow($col, 6)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('6366f1');
+        $sheet->getStyleByColumnAndRow($col, 6)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('6366f1');
         $sheet->getStyleByColumnAndRow($col, 6)->getFont()->getColor()->setRGB('FFFFFF');
         $col++;
     }
@@ -270,7 +261,7 @@ function generateExcel($data, $from, $to) {
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header('Content-Disposition: attachment; filename="attendance_report_' . date('Y-m-d') . '.xlsx"');
     
-    $writer = new Xlsx($spreadsheet);
+    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
     $writer->save('php://output');
     exit;
 }

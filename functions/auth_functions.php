@@ -43,12 +43,33 @@ function loginUser($username, $password, $church = 'AFB Mangaan') {
  * Logout user and destroy session
  */
 function logoutUser() {
+    require_once __DIR__ . '/../config/session.php';
+
     if (isset($_SESSION['user_id'])) {
         logActivity($_SESSION['user_id'], 'LOGOUT', "User {$_SESSION['username']} logged out");
     }
     
-    session_destroy();
-    $_SESSION = [];
+    // Clear in-memory session array
+    $_SESSION = array();
+
+    // Expire and delete the session cookie in browser
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(
+            session_name(),
+            '',
+            time() - 42000,
+            $params["path"],
+            $params["domain"],
+            $params["secure"],
+            $params["httponly"]
+        );
+    }
+
+    // Destroy active session storage
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_destroy();
+    }
     
     return ['success' => true];
 }

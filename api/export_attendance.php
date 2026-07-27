@@ -4,7 +4,7 @@
  * AFB Mangaan Attendance System
  */
 
-session_start();
+require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../includes/auth_check.php';
 require_once __DIR__ . '/../functions/attendance_logic.php';
 

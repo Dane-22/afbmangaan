@@ -21,33 +21,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $action = $_POST['action'] ?? '';
         
         if ($action === 'add' || $action === 'edit') {
-        $pdo = getDB();
-        $id = $_POST['id'] ?? null;
-        $fullname = $_POST['fullname'] ?? '';
-        $category = $_POST['category'] ?? 'Adult';
-        $contact = $_POST['contact'] ?? '';
-        $email = $_POST['email'] ?? '';
-        $status = $_POST['status'] ?? 'Active';
-        
-        try {
-            if ($id) {
-                // Update
-                $stmt = $pdo->prepare("UPDATE attendees SET fullname=?, category=?, contact=?, email=?, status=? WHERE id=? AND church=?");
-                $stmt->execute([$fullname, $category, $contact, $email, $status, $id, $_SESSION['church'] ?? 'AFB Mangaan']);
-                $message = 'Member updated successfully';
-                logActivity($_SESSION['user_id'], 'MEMBER_UPDATE', "Updated member ID: {$id}");
-            } else {
-                // Insert
-                $qrToken = generateQRToken(rand(1000, 9999));
-                $stmt = $pdo->prepare("INSERT INTO attendees (church, fullname, category, contact, email, qr_token, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([$_SESSION['church'] ?? 'AFB Mangaan', $fullname, $category, $contact, $email, $qrToken, $status]);
-                $message = 'Member added successfully';
-                logActivity($_SESSION['user_id'], 'MEMBER_CREATE', "Created member: {$fullname}");
+            $pdo = getDB();
+            $id = $_POST['id'] ?? null;
+            $fullname = $_POST['fullname'] ?? '';
+            $category = $_POST['category'] ?? 'WMO';
+            $ministry = ($category === 'Ministers') ? ($_POST['ministry'] ?? null) : null;
+            $contact = $_POST['contact'] ?? '';
+            $email = $_POST['email'] ?? '';
+            $status = $_POST['status'] ?? 'Active';
+            
+            try {
+                if ($id) {
+                    // Update
+                    $stmt = $pdo->prepare("UPDATE attendees SET fullname=?, category=?, ministry=?, contact=?, email=?, status=? WHERE id=? AND church=?");
+                    $stmt->execute([$fullname, $category, $ministry, $contact, $email, $status, $id, $_SESSION['church'] ?? 'AFB Mangaan']);
+                    $message = 'Member updated successfully';
+                    logActivity($_SESSION['user_id'], 'MEMBER_UPDATE', "Updated member ID: {$id}");
+                } else {
+                    // Insert
+                    $qrToken = generateQRToken(rand(1000, 9999));
+                    $stmt = $pdo->prepare("INSERT INTO attendees (church, fullname, category, ministry, contact, email, qr_token, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([$_SESSION['church'] ?? 'AFB Mangaan', $fullname, $category, $ministry, $contact, $email, $qrToken, $status]);
+                    $message = 'Member added successfully';
+                    logActivity($_SESSION['user_id'], 'MEMBER_CREATE', "Created member: {$fullname}");
+                }
+            } catch (PDOException $e) {
+                $error = 'Error saving member: ' . $e->getMessage();
             }
-        } catch (PDOException $e) {
-            $error = 'Error saving member: ' . $e->getMessage();
-        }
-    } elseif ($action === 'delete' && isset($_POST['id'])) {
+        } elseif ($action === 'delete' && isset($_POST['id'])) {
         $pdo = getDB();
         try {
             $stmt = $pdo->prepare("UPDATE attendees SET status='Archived' WHERE id=?");
@@ -125,7 +126,19 @@ $stmt->execute($params);
 $members = $stmt->fetchAll();
 
 // Get categories for filter
-$categories = ['MCYO', 'WMO', 'CCMO', 'KIDS', 'Visitors', 'Other'];
+$categories = ['MCYO', 'WMO', 'CCMO', 'KIDS', 'Visitors', 'Pastors', 'Leaders', 'Ministers', 'Other'];
+
+// Predefined ministries list for Ministers category
+$ministries = [
+    'Music Ministry',
+    'Pastoral Care',
+    'Youth and Children\'s Ministry',
+    'Usher Ministry',
+    'Deacon Ministry',
+    'Dance Ministry',
+    'Multimedia Ministry',
+    'Other'
+];
 
 // Check if adding/editing
 $editMode = false;
@@ -242,7 +255,12 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add' && empty($message
                                     <br><small><?php echo htmlspecialchars($member['email']); ?></small>
                                 <?php endif; ?>
                             </td>
-                            <td data-label="Category"><?php echo $member['category']; ?></td>
+                            <td data-label="Category">
+                                <?php echo htmlspecialchars($member['category']); ?>
+                                <?php if ($member['category'] === 'Ministers' && !empty($member['ministry'])): ?>
+                                    <br><small style="color: var(--text-muted);"><i class="ph ph-briefcase"></i> <?php echo htmlspecialchars($member['ministry']); ?></small>
+                                <?php endif; ?>
+                            </td>
                             <td data-label="Contact"><?php echo htmlspecialchars($member['contact']); ?></td>
                             <td data-label="QR Token"><code><?php echo $member['qr_token']; ?></code></td>
                             <td data-label="Status">
@@ -255,7 +273,8 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add' && empty($message
                                     <button type="button" class="btn btn-sm btn-secondary" title="Edit" 
                                             data-id="<?php echo $member['id']; ?>"
                                             data-fullname="<?php echo htmlspecialchars($member['fullname'], ENT_QUOTES, 'UTF-8'); ?>"
-                                            data-category="<?php echo $member['category']; ?>"
+                                            data-category="<?php echo htmlspecialchars($member['category'], ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-ministry="<?php echo htmlspecialchars($member['ministry'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                                             data-contact="<?php echo htmlspecialchars($member['contact'], ENT_QUOTES, 'UTF-8'); ?>"
                                             data-email="<?php echo htmlspecialchars($member['email'], ENT_QUOTES, 'UTF-8'); ?>"
                                             data-status="<?php echo $member['status']; ?>"
@@ -300,7 +319,12 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add' && empty($message
                     <div class="member-grid-details">
                         <div class="member-detail-row">
                             <span class="detail-label">Category</span>
-                            <span class="detail-value"><?php echo $member['category']; ?></span>
+                            <span class="detail-value">
+                                <?php echo htmlspecialchars($member['category']); ?>
+                                <?php if ($member['category'] === 'Ministers' && !empty($member['ministry'])): ?>
+                                    <small style="display: block; color: var(--text-muted);">(<?php echo htmlspecialchars($member['ministry']); ?>)</small>
+                                <?php endif; ?>
+                            </span>
                         </div>
                         <div class="member-detail-row">
                             <span class="detail-label">Contact</span>
@@ -317,7 +341,8 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add' && empty($message
                         <button type="button" class="btn btn-edit"
                                 data-id="<?php echo $member['id']; ?>"
                                 data-fullname="<?php echo htmlspecialchars($member['fullname'], ENT_QUOTES, 'UTF-8'); ?>"
-                                data-category="<?php echo $member['category']; ?>"
+                                data-category="<?php echo htmlspecialchars($member['category'], ENT_QUOTES, 'UTF-8'); ?>"
+                                data-ministry="<?php echo htmlspecialchars($member['ministry'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                                 data-contact="<?php echo htmlspecialchars($member['contact'], ENT_QUOTES, 'UTF-8'); ?>"
                                 data-email="<?php echo htmlspecialchars($member['email'], ENT_QUOTES, 'UTF-8'); ?>"
                                 data-status="<?php echo $member['status']; ?>"
@@ -389,11 +414,26 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add' && empty($message
                         <i class="ph ph-users-three" style="color: var(--primary);"></i>
                         Category *
                     </label>
-                    <select name="category" class="form-control form-select" required
+                    <select name="category" id="add_category" class="form-control form-select" required
+                            onchange="toggleMinistryField('add')"
                             style="padding: 0.75rem; border-radius: var(--radius-md);">
                         <option value="">Select Category</option>
                         <?php foreach ($categories as $cat): ?>
                             <option value="<?php echo $cat; ?>"><?php echo $cat; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="add_ministry_group" style="margin-bottom: 1rem; display: none;">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.25rem;">
+                        <i class="ph ph-briefcase" style="color: var(--primary);"></i>
+                        Ministry *
+                    </label>
+                    <select name="ministry" id="add_ministry" class="form-control form-select"
+                            style="padding: 0.75rem; border-radius: var(--radius-md);">
+                        <option value="">Select Ministry</option>
+                        <?php foreach ($ministries as $min): ?>
+                            <option value="<?php echo $min; ?>"><?php echo $min; ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -470,9 +510,24 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add' && empty($message
                         Category *
                     </label>
                     <select name="category" id="edit_category" class="form-control form-select" required
+                            onchange="toggleMinistryField('edit')"
                             style="padding: 0.75rem; border-radius: var(--radius-md);">
                         <?php foreach ($categories as $cat): ?>
                             <option value="<?php echo $cat; ?>"><?php echo $cat; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="edit_ministry_group" style="margin-bottom: 1rem; display: none;">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.25rem;">
+                        <i class="ph ph-briefcase" style="color: var(--primary);"></i>
+                        Ministry *
+                    </label>
+                    <select name="ministry" id="edit_ministry" class="form-control form-select"
+                            style="padding: 0.75rem; border-radius: var(--radius-md);">
+                        <option value="">Select Ministry</option>
+                        <?php foreach ($ministries as $min): ?>
+                            <option value="<?php echo $min; ?>"><?php echo $min; ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -530,10 +585,28 @@ $addMode = isset($_GET['action']) && $_GET['action'] === 'add' && empty($message
 </div>
 
 <script>
+function toggleMinistryField(type) {
+    const categorySelect = document.getElementById(type + '_category');
+    const ministryGroup = document.getElementById(type + '_ministry_group');
+    const ministrySelect = document.getElementById(type + '_ministry');
+
+    if (categorySelect && categorySelect.value === 'Ministers') {
+        if (ministryGroup) ministryGroup.style.display = 'block';
+        if (ministrySelect) ministrySelect.required = true;
+    } else {
+        if (ministryGroup) ministryGroup.style.display = 'none';
+        if (ministrySelect) {
+            ministrySelect.required = false;
+            ministrySelect.value = '';
+        }
+    }
+}
+
 function openMemberModal() {
     const modal = document.getElementById('addMemberModal');
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    toggleMinistryField('add');
     
     // Focus on first input
     setTimeout(() => {
@@ -546,6 +619,7 @@ function closeMemberModal() {
     modal.style.display = 'none';
     document.body.style.overflow = '';
     document.getElementById('addMemberForm').reset();
+    toggleMinistryField('add');
 }
 
 function closeEditModal() {
@@ -553,6 +627,7 @@ function closeEditModal() {
     modal.style.display = 'none';
     document.body.style.overflow = '';
     document.getElementById('editMemberForm').reset();
+    toggleMinistryField('edit');
 }
 
 // Close modals on backdrop click
@@ -584,8 +659,10 @@ document.querySelectorAll('.close-modal').forEach(button => {
         document.body.style.overflow = '';
         if (modalId === 'addMemberModal') {
             document.getElementById('addMemberForm').reset();
+            toggleMinistryField('add');
         } else {
             document.getElementById('editMemberForm').reset();
+            toggleMinistryField('edit');
         }
     });
 });
@@ -594,6 +671,7 @@ function openEditModalFromButton(btn) {
     const id = btn.dataset.id;
     const fullname = btn.dataset.fullname;
     const category = btn.dataset.category;
+    const ministry = btn.dataset.ministry;
     const contact = btn.dataset.contact;
     const email = btn.dataset.email;
     const status = btn.dataset.status;
@@ -602,6 +680,12 @@ function openEditModalFromButton(btn) {
     document.getElementById('edit_id').value = id;
     document.getElementById('edit_fullname').value = fullname;
     document.getElementById('edit_category').value = category;
+    
+    toggleMinistryField('edit');
+    if (ministry && document.getElementById('edit_ministry')) {
+        document.getElementById('edit_ministry').value = ministry;
+    }
+    
     document.getElementById('edit_contact').value = contact;
     document.getElementById('edit_email').value = email;
     document.getElementById('edit_status').value = status;
