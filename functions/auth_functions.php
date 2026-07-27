@@ -50,6 +50,7 @@ function logoutUser() {
     }
     
     // Clear in-memory session array
+    session_unset();
     $_SESSION = array();
 
     // Expire and delete the session cookie in browser
@@ -70,6 +71,8 @@ function logoutUser() {
     if (session_status() === PHP_SESSION_ACTIVE) {
         session_destroy();
     }
+
+    session_write_close();
     
     return ['success' => true];
 }

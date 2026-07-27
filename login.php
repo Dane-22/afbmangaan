@@ -8,6 +8,16 @@ require_once __DIR__ . '/config/session.php';
 require_once __DIR__ . '/functions/auth_functions.php';
 require_once __DIR__ . '/functions/csrf.php';
 
+// Prevent browser caching of login/redirect states
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
+// Force session logout if explicit query param passed
+if (isset($_GET['logged_out']) || (isset($_GET['action']) && $_GET['action'] === 'logout')) {
+    logoutUser();
+}
+
 // Redirect if already logged in
 if (isLoggedIn()) {
     header('Location: dashboard.php');

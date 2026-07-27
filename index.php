@@ -1,3 +1,7 @@
+<?php
+require_once __DIR__ . '/config/session.php';
+require_once __DIR__ . '/functions/auth_functions.php';
+?>
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -31,7 +35,13 @@
             <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
                 <i class="ph ph-moon" id="themeIcon"></i>
             </button>
-            <a href="login.php" class="btn btn--primary">Sign In</a>
+            <?php if (isLoggedIn()): ?>
+                <a href="dashboard.php" class="btn btn--primary">
+                    <i class="ph ph-squares-four"></i> Dashboard
+                </a>
+            <?php else: ?>
+                <a href="login.php" class="btn btn--primary">Sign In</a>
+            <?php endif; ?>
         </div>
     </nav>
 
