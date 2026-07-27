@@ -1,6 +1,6 @@
 # GitHub Deployment Guide: Pushing & Pulling Updates
 
-This document provides a step-by-step guide on how to push local development updates to **GitHub** and pull them onto your **production server** (WAMP / cPanel / VPS).
+This document provides a step-by-step guide on how to push local development updates to **GitHub** and pull them onto your **production server** (WAMP / Linux VPS / cPanel).
 
 ---
 
@@ -20,53 +20,60 @@ flowchart LR
 
 Run these commands in your local project terminal (`c:\wamp64\www\afbmangaan`):
 
-### 1. Check modified files
 ```bash
 git status
-```
-
-### 2. Stage modified files
-```bash
 git add .
-```
-
-### 3. Commit staged changes with a descriptive message
-```bash
 git commit -m "New Feature - Add Categories for pastors, leaders, ministers & Logout page session management"
-```
-
-### 4. Push to GitHub repository
-```bash
 git push origin main
 ```
 
 ---
 
-## Step 2: Pulling Changes onto the Server
+## Step 2: Pulling Changes on Your Linux Server (`srv1313830`)
 
-On your **production server** terminal / SSH console or command prompt:
+### Option A: If your website folder ALREADY exists on the server
 
-### 1. Navigate to the project root directory
-- **Windows (WAMP / IIS):**
-  ```powershell
-  cd c:\wamp64\www\afbmangaan
-  ```
-- **Linux (Apache / Nginx):**
-  ```bash
-  cd /var/www/html/afbmangaan
-  ```
+1. **Find where your website directory is located on the server**:
+   Run one of these commands on your server:
+   ```bash
+   find /var/www -maxdepth 3 -type d -name "*afb*" 2>/dev/null
+   ```
+   *Common locations:*
+   - Ubuntu / Debian: `/var/www/html/afbmangaan` or `/var/www/afbmangaan`
+   - cPanel: `/home/USERNAME/public_html` or `/var/www/html`
 
-### 2. Fetch and pull the latest code from GitHub
-```bash
-git fetch origin
-git pull origin main
-```
+2. **Navigate into the project directory**:
+   ```bash
+   cd /var/www/html/afbmangaan
+   ```
+   *(Replace `/var/www/html/afbmangaan` with your actual folder path found in step 1)*
 
-### 3. Verify that the server is up-to-date
-```bash
-git status
-```
-*Output should show:* `Your branch is up to date with 'origin/main'.`
+3. **Pull the latest code from GitHub**:
+   ```bash
+   git fetch origin
+   git pull origin main
+   ```
+
+---
+
+### Option B: If the website is NOT YET cloned on the server (First-time Setup)
+
+If you haven't cloned the Git repository on the server yet:
+
+1. **Navigate to the web root directory**:
+   ```bash
+   cd /var/www/html
+   ```
+
+2. **Clone the repository from GitHub**:
+   ```bash
+   git clone https://github.com/Dane-22/afbmangaan.git
+   ```
+
+3. **Navigate into the cloned repository**:
+   ```bash
+   cd afbmangaan
+   ```
 
 ---
 
@@ -74,36 +81,28 @@ git status
 
 Whenever a deployment includes database updates (e.g., `schema_update.sql`), run the SQL update on the server's MySQL database.
 
-### Option A: Via phpMyAdmin (Recommended for WAMP / cPanel)
-1. Open **phpMyAdmin**.
-2. Select your database (`afb_mangaan_db`).
-3. Click the **SQL** tab.
-4. Copy the entire contents of [schema_update.sql](file:///c:/wamp64/www/afbmangaan/schema_update.sql).
-5. Paste into the SQL editor and click **Go**.
-
-### Option B: Via Command Line (MySQL CLI)
+### Option A: Via Command Line (Linux MySQL CLI)
 ```bash
 mysql -u root -p afb_mangaan_db < schema_update.sql
 ```
 
+### Option B: Via phpMyAdmin
+1. Open **phpMyAdmin**.
+2. Select your database (`afb_mangaan_db`).
+3. Click the **SQL** tab.
+4. Copy the contents of [schema_update.sql](file:///c:/wamp64/www/afbmangaan/schema_update.sql) and paste it into the query box, then click **Go**.
+
 ---
 
-## Troubleshooting & Tips
+## Troubleshooting & Useful Server Commands
 
-### Handling Local Uncommitted Changes on Server
-If `git pull` fails because of local server edits:
+### How to check where Apache / Nginx points on your server
 ```bash
-# Temporarily stash local server changes
-git stash
-
-# Pull latest code from GitHub
-git pull origin main
-
-# (Optional) Re-apply stashed changes if needed
-git stash pop
+grep -rn "DocumentRoot" /etc/apache2/ /etc/httpd/ /etc/nginx/ 2>/dev/null
 ```
 
-### View Recent Commit History
+### If `git pull` fails due to uncommitted local server changes
 ```bash
-git log -n 5 --oneline
+git stash
+git pull origin main
 ```
