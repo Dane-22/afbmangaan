@@ -22,7 +22,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- CSS -->
-    <link rel="stylesheet" href="assets/css/main.css?v=3">
+    <link rel="stylesheet" href="assets/css/main.css?v=5">
+    <link rel="stylesheet" href="assets/css/modals.css?v=1">
     <link rel="stylesheet" href="assets/css/animations.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     

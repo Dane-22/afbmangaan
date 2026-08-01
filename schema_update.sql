@@ -94,7 +94,13 @@ INSERT IGNORE INTO `categories` (`church`, `name`) VALUES
 ('AFB Mangaan', 'Pastors'),
 ('AFB Mangaan', 'Leaders'),
 ('AFB Mangaan', 'Ministers'),
-('AFB Mangaan', 'Other'),
+('AFB Mangaan', 'Secretary'),
+('AFB Mangaan', 'Treasurer'),
+('AFB Mangaan', 'Deacon'),
+('AFB Mangaan', 'CED'),
+('AFB Mangaan', 'Mission'),
+('AFB Mangaan', 'Life Group'),
+('AFB Mangaan', 'Others'),
 ('AFB Lettac Sur', 'MCYO'),
 ('AFB Lettac Sur', 'WMO'),
 ('AFB Lettac Sur', 'CCMO'),
@@ -103,5 +109,47 @@ INSERT IGNORE INTO `categories` (`church`, `name`) VALUES
 ('AFB Lettac Sur', 'Pastors'),
 ('AFB Lettac Sur', 'Leaders'),
 ('AFB Lettac Sur', 'Ministers'),
-('AFB Lettac Sur', 'Other');
+('AFB Lettac Sur', 'Secretary'),
+('AFB Lettac Sur', 'Treasurer'),
+('AFB Lettac Sur', 'Deacon'),
+('AFB Lettac Sur', 'CED'),
+('AFB Lettac Sur', 'Mission'),
+('AFB Lettac Sur', 'Life Group'),
+('AFB Lettac Sur', 'Others');
 
+
+-- 8. Create event_songs table
+CREATE TABLE IF NOT EXISTS `event_songs` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `event_id` INT NOT NULL,
+  `title` VARCHAR(255) NOT NULL,
+  `artist` VARCHAR(255) DEFAULT NULL,
+  `lyrics` TEXT,
+  `chords` TEXT,
+  `sort_order` INT DEFAULT 0,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`event_id`) REFERENCES `events`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 9. Create event_stations table
+CREATE TABLE IF NOT EXISTS `event_stations` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `event_id` INT NOT NULL,
+  `station_name` VARCHAR(150) NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`event_id`) REFERENCES `events`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 10. Create event_station_assignments table
+CREATE TABLE IF NOT EXISTS `event_station_assignments` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `station_id` INT NOT NULL,
+  `member_id` INT NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`station_id`) REFERENCES `event_stations`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`member_id`) REFERENCES `attendees`(`id`) ON DELETE CASCADE,
+  UNIQUE KEY `unique_station_member` (`station_id`, `member_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

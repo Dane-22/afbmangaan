@@ -151,18 +151,24 @@ try {
 
 // Fallback defaults if table is empty
 if (empty($categories)) {
-    $categories = ['MCYO', 'WMO', 'CCMO', 'KIDS', 'Visitors', 'Pastors', 'Leaders', 'Ministers', 'Other'];
+    $categories = ['MCYO', 'WMO', 'CCMO', 'KIDS', 'Visitors', 'Pastors', 'Leaders', 'Ministers', 'Secretary', 'Treasurer', 'Deacon', 'CED', 'Mission', 'Life Group', 'Others'];
 }
 
 // Predefined ministries list for Ministers category
 $ministries = [
     'Music Ministry',
     'Pastoral Care',
-    'Youth and Children\'s Ministry',
+    'Kids Ministry',
+    'Youth Ministry',
     'Usher Ministry',
     'Deacon Ministry',
     'Dance Ministry',
     'Multimedia Ministry',
+    'Live Production',
+    'Creatives',
+    'Transportation Ministry',
+    'Kitchen Ministry',
+    'Helps',
     'Other'
 ];
 

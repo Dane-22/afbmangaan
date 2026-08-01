@@ -88,6 +88,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (PDOException $e) {
             $error = 'Error updating status';
         }
+    } elseif ($action === 'bulk_delete' && !empty($_POST['event_ids'])) {
+        try {
+            $ids = implode(',', array_fill(0, count($_POST['event_ids']), '?'));
+            $stmt = $pdo->prepare("UPDATE events SET status='Archived' WHERE id IN ($ids) AND church=?");
+            $params = array_merge($_POST['event_ids'], [$_SESSION['church'] ?? 'AFB Mangaan']);
+            $stmt->execute($params);
+            $message = count($_POST['event_ids']) . ' events have been archived successfully.';
+            logActivity($_SESSION['user_id'], 'EVENT_BULK_DELETE', 'Archived ' . count($_POST['event_ids']) . ' events');
+        } catch (PDOException $e) {
+            $error = 'Error deleting events: ' . $e->getMessage();
+        }
     }
     }
 }
@@ -109,7 +120,7 @@ $filters['offset'] = ($page - 1) * $perPage;
 $events = getEvents($filters);
 
 $eventTypes = ['Sunday Service', 'Midweek Service', 'Special Event', 'Meeting', 'Other'];
-$statuses = ['Upcoming', 'Ongoing', 'Completed', 'Cancelled'];
+$statuses = ['Upcoming', 'Ongoing', 'Completed', 'Cancelled', 'Archived'];
 
 // Edit mode
 $editMode = false;
@@ -272,18 +283,31 @@ $createMode = isset($_GET['action']) && $_GET['action'] === 'create';
     <div class="card-body">
         <!-- Desktop Table View -->
         <div class="table-container desktop-only">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Event</th>
-                        <th>Date & Time</th>
-                        <th>Location</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
+            <form method="POST" id="bulkDeleteForm" onsubmit="return confirm('Are you sure you want to delete/archive selected events?');">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
+                <input type="hidden" name="action" value="bulk_delete">
+                
+                <div style="margin-bottom: 1rem;">
+                    <button type="submit" class="btn btn-danger btn-sm" id="bulkDeleteBtn" style="display: none;">
+                        <i class="ph ph-trash"></i> Delete Selected
+                    </button>
+                </div>
+                
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px; text-align: center;">
+                                <input type="checkbox" id="selectAllDesktop" onclick="toggleAllCheckboxes(this)" style="width: 16px; height: 16px; cursor: pointer;">
+                            </th>
+                            <th>Event</th>
+                            <th>Date & Time</th>
+                            <th>Location</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
                     <?php foreach ($events as $event): ?>
                         <?php 
                         $statusClass = match($event['status']) {
@@ -295,6 +319,9 @@ $createMode = isset($_GET['action']) && $_GET['action'] === 'create';
                         };
                         ?>
                         <tr>
+                            <td style="text-align: center;">
+                                <input type="checkbox" name="event_ids[]" value="<?php echo $event['id']; ?>" class="event-checkbox" onclick="toggleBulkDeleteBtn()" style="width: 16px; height: 16px; cursor: pointer;">
+                            </td>
                             <td data-label="Event">
                                 <strong><?php echo htmlspecialchars($event['event_name']); ?></strong>
                                 <?php if ($event['description']): ?>
@@ -346,6 +373,7 @@ $createMode = isset($_GET['action']) && $_GET['action'] === 'create';
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            </form>
         </div>
 
         <!-- Mobile Grid View -->
@@ -447,5 +475,22 @@ $createMode = isset($_GET['action']) && $_GET['action'] === 'create';
         <?php endif; ?>
     </div>
 </div>
+
+<script>
+function toggleAllCheckboxes(source) {
+    const checkboxes = document.querySelectorAll('.event-checkbox');
+    checkboxes.forEach(cb => cb.checked = source.checked);
+    toggleBulkDeleteBtn();
+}
+
+function toggleBulkDeleteBtn() {
+    const checkedCount = document.querySelectorAll('.event-checkbox:checked').length;
+    const btn = document.getElementById('bulkDeleteBtn');
+    if (btn) {
+        btn.style.display = checkedCount > 0 ? 'inline-flex' : 'none';
+        btn.innerHTML = `<i class="ph ph-trash"></i> Delete Selected (${checkedCount})`;
+    }
+}
+</script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

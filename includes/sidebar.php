@@ -17,6 +17,8 @@ $menuItems = [
     ['id' => 'attendance_audit', 'label' => 'Attendance Audit', 'icon' => 'ph-magnifying-glass', 'url' => 'attendance_audit.php', 'roles' => ['admin', 'operator']],
     ['id' => 'members', 'label' => 'Members', 'icon' => 'ph-users', 'url' => 'members.php', 'roles' => ['admin', 'operator']],
     ['id' => 'events', 'label' => 'Events', 'icon' => 'ph-calendar', 'url' => 'events.php', 'roles' => ['admin', 'operator']],
+    ['id' => 'event_lineup', 'label' => 'Event Lineups', 'icon' => 'ph-music-notes', 'url' => 'event_lineup.php', 'roles' => ['admin', 'operator']],
+    ['id' => 'event_stations', 'label' => 'Event Stations', 'icon' => 'ph-users-three', 'url' => 'event_stations.php', 'roles' => ['admin', 'operator']],
     ['id' => 'logs', 'label' => 'System Logs', 'icon' => 'ph-scroll', 'url' => 'logs.php', 'roles' => ['admin']],
     ['id' => 'settings', 'label' => 'Settings', 'icon' => 'ph-gear', 'url' => 'settings.php', 'roles' => ['admin', 'operator']],
 ];
