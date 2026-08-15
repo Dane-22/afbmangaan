@@ -455,11 +455,11 @@ require_once __DIR__ . '/functions/auth_functions.php';
             <p class="cta__desc">Whether you're seeking community, searching for meaning, or looking to serve, there's a place for you in our family.</p>
             
             <div class="cta__actions">
-                <a href="attendance.php" class="btn btn--primary btn--large">
+                <a href="attendance.php" class="btn btn--primary btn--large" onclick="alert(' Please Sign Up first'); event.preventDefault();">
                     <i class="ph ph-calendar-check"></i>
                     <span>Take Attendance</span>
                 </a>
-                <a href="dashboard.php" class="btn btn--outline btn--large">
+                <a href="dashboard.php" class="btn btn--outline btn--large" onclick="alert('Please Sign Up first'); event.preventDefault();">
                     <i class="ph ph-sign-in"></i>
                     <span>Dashboard</span>
                 </a>

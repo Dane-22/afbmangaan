@@ -145,10 +145,10 @@ if ($selectedEventId) {
                                     <td style="color: var(--text-muted);"><?php echo htmlspecialchars($song['artist']); ?></td>
                                     <td>
                                         <div style="display: flex; gap: 0.5rem;">
-                                            <button class="btn btn-sm btn-secondary" onclick='editSong(<?php echo json_encode($song); ?>)' title="Edit Song">
+                                            <button class="btn btn-sm btn-secondary" onclick="editSong(<?php echo htmlspecialchars(json_encode($song), ENT_QUOTES, 'UTF-8'); ?>)" title="Edit Song">
                                                 <i class="ph ph-pencil"></i>
                                             </button>
-                                            <button class="btn btn-sm btn-primary" onclick='viewLyrics(<?php echo json_encode($song); ?>)' title="View Lyrics/Chords">
+                                            <button class="btn btn-sm btn-primary" onclick="viewLyrics(<?php echo htmlspecialchars(json_encode($song), ENT_QUOTES, 'UTF-8'); ?>)" title="View Lyrics/Chords">
                                                 <i class="ph ph-book-open"></i>
                                             </button>
                                             <form method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to remove this song?');">
