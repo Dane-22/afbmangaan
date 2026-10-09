@@ -9,6 +9,7 @@ function apiAccessError($status, $message) {
 }
 
 function apiIdentity($roles = ['admin', 'operator', 'viewer'], $allowBearer = true) {
+    global $pdo;
     $authorization = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
     if (!$authorization && function_exists('getallheaders')) {
         foreach (getallheaders() as $key => $value) if (strcasecmp($key, 'Authorization') === 0) $authorization = $value;
