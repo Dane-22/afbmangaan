@@ -2,7 +2,7 @@
 
 Date: 2026-10-09
 
-Status: Proposed. Investigation and documentation only; no application changes, builds, pushes, or production deployment made for this issue.
+Status: Implementation approved and completed for APK 1.1.1. Automated verification has passed; production rollout requires renewed temporary SSH access. The sections below preserve the investigation and accepted implementation plan.
 
 ## Confirmed cause
 

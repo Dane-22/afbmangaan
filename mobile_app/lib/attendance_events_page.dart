@@ -22,7 +22,7 @@ class _AttendanceEventsPageState extends State<AttendanceEventsPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await widget.controller.sync(silent: true);
+      await widget.controller.sync(silent: widget.initialEventId == null);
       if (!mounted || widget.initialEventId == null) return;
       final event = widget.controller.events.where((event) => event.id == widget.initialEventId).firstOrNull;
       if (event != null) { await open(event); }
@@ -76,7 +76,7 @@ class _AttendanceEventsPageState extends State<AttendanceEventsPage> {
         if (status.isNotEmpty || offlineOnly || range != null) TextButton(onPressed: () => setState(() { status = ''; offlineOnly = false; range = null; }), child: const Text('Clear filters')),
       ]),
       if (c.events.isEmpty && !c.busy) Card(child: Padding(padding: const EdgeInsets.all(20), child: Column(children: [
-        Text(c.lastRefresh == null ? 'Download events for offline attendance.' : 'No events exist for this church in the last successful download.'),
+        Text(c.lastRefresh == null ? 'Download events for offline attendance.' : c.catalogNeedsUpgrade ? 'Download the updated event list to include historical events.' : 'No events exist for this church in the last successful download.'),
         TextButton.icon(onPressed: () => c.sync(), icon: const Icon(Icons.download), label: const Text('Download events')),
         if (c.lastRefresh != null) TextButton(onPressed: () => widget.onNavigate('events:add'), child: const Text('Create event')),
       ]))),
