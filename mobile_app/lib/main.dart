@@ -300,6 +300,10 @@ class _EventPageState extends State<EventPage> {
   String query = '';
 
   Future<void> export() async {
+    if (!widget.controller.detailDownloads.containsKey(widget.event.id)) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Download attendance details before exporting.')));
+      return;
+    }
     final c = widget.controller;
     try {
       final rows = c.members.map((m) {
@@ -337,14 +341,22 @@ class _EventPageState extends State<EventPage> {
   Widget build(BuildContext context) => AnimatedBuilder(animation: widget.controller, builder: (context, _) {
         final c = widget.controller;
         final filtered = c.members.where((m) => m.name.toLowerCase().contains(query.toLowerCase()) || (m.qrToken ?? '').toLowerCase().contains(query.toLowerCase())).toList();
-        final today = DateTime.now().toUtc().add(const Duration(hours: 8)).toIso8601String().substring(0, 10);
-        final canRecord = widget.event.status != 'Cancelled' && today.compareTo(widget.event.startDate) >= 0 && today.compareTo(widget.event.endDate ?? widget.event.startDate) <= 0;
+        final event = c.events.where((item) => item.id == widget.event.id).firstOrNull ?? widget.event;
+        final downloaded = c.detailDownloads[event.id];
+        final downloading = c.downloadingEvents.contains(event.id);
+        final canRecord = downloaded != null && event.canRecordAt(DateTime.now().toUtc());
         return Scaffold(
           appBar: AppBar(title: Text(widget.event.name), actions: [IconButton(tooltip: 'Export attendance', onPressed: export, icon: const Icon(Icons.download_outlined)), IconButton(tooltip: 'Scan QR code', onPressed: canRecord ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => ScanPage(controller: c, event: widget.event))) : null, icon: const Icon(Icons.qr_code_scanner)), PopupMenuButton<String>(onSelected: (_) => markAll(), itemBuilder: (_) => [PopupMenuItem(value: 'all', enabled: canRecord, child: const Text('Mark all present'))])]),
           body: Column(children: [
             Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Text('${widget.event.startDate} · ${widget.event.status}'),
-              if (!canRecord) const Padding(padding: EdgeInsets.only(top: 8), child: Text('Recording is available on the event date. Sync to check for changes.')),
+              Text('${event.startDate} · ${event.status}'),
+              Text(downloaded == null ? 'Attendance details not downloaded.' : 'Attendance saved: ${formatTime(downloaded)}'),
+              if (downloading) const LinearProgressIndicator(),
+              TextButton.icon(onPressed: downloading ? null : () async {
+                try { await c.downloadEvent(event.id); }
+                catch (error) { if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString()))); }
+              }, icon: const Icon(Icons.download), label: Text(downloaded == null ? 'Download for offline use' : 'Refresh attendance details')),
+              if (!canRecord) Padding(padding: const EdgeInsets.only(top: 8), child: Text(downloaded == null ? 'Download details to review attendance or record on the valid event date.' : ['Cancelled', 'Archived'].contains(event.status) ? 'Recording is disabled for ${event.status.toLowerCase()} events.' : 'Historical and future events are available for review. Recording is available on the event date.')),
               const SizedBox(height: 12),
               TextField(decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search member or QR code', border: OutlineInputBorder()), onChanged: (value) => setState(() => query = value)),
             ])),
@@ -355,7 +367,7 @@ class _EventPageState extends State<EventPage> {
               return Card(margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(member.name, style: Theme.of(context).textTheme.titleMedium),
                 Text('${member.category ?? ''} · ${member.qrToken ?? 'No QR code'}'),
-                Text(pending != null ? '${pending.status} · Pending sync' : (current?.status ?? 'Not recorded')),
+                Text(pending != null ? '${pending.status} · Pending sync' : downloaded == null ? 'Attendance details not downloaded' : (current?.status ?? 'Not recorded')),
                 const SizedBox(height: 8),
                 Wrap(spacing: 8, children: [
                   OutlinedButton(onPressed: canRecord ? () => mark(member, 'Absent', 'Manual') : null, child: const Text('Absent')),

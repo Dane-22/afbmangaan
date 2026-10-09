@@ -12,9 +12,9 @@ class ApiFailure implements Exception {
 
 class MobileApi {
   final String baseUrl;
-  final http.Client _client = http.Client();
+  final http.Client _client;
 
-  MobileApi(this.baseUrl);
+  MobileApi(this.baseUrl, {http.Client? client}) : _client = client ?? http.Client();
 
   Uri _url(String endpoint) => Uri.parse('${baseUrl.replaceAll(RegExp(r'/$'), '')}/api/$endpoint.php');
 
@@ -46,6 +46,27 @@ class MobileApi {
       _request('POST', 'mobile_login', body: {'username': username, 'password': password, 'church': church});
 
   Future<Map<String, dynamic>> catalog(String token) => _request('GET', 'mobile_catalog', token: token);
+
+  Future<Map<String, dynamic>> catalogV2(String token, {int? eventId}) async {
+    for (var attempt = 0; attempt < 3; attempt++) {
+      try {
+        final endpoint = eventId == null ? 'mobile_catalog_v2' : 'mobile_event_detail';
+        Map<String, dynamic>? merged;
+        for (var page = 1; ; page++) {
+          final response = await _request('POST', endpoint, token: token, body: {'page': page, if (eventId != null) 'event_id': eventId, if (merged != null) 'snapshot': merged['snapshot']});
+          if (merged == null) {
+            merged = response;
+          } else {
+            for (final key in ['events', 'members', 'attendance']) { (merged[key] as List).addAll(response[key] as List); }
+          }
+          if (page >= (response['total_pages'] as num).toInt()) return merged;
+        }
+      } on ApiFailure catch (error) {
+        if (error.status != 409 || attempt == 2) rethrow;
+      }
+    }
+    throw StateError('Could not obtain a consistent event download.');
+  }
 
   Future<Map<String, dynamic>> portal(String token) => _request('GET', 'mobile_portal', token: token);
 

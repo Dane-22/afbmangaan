@@ -40,6 +40,11 @@ class MobileEvent {
       );
 
   Map<String, dynamic> toJson() => {'id': id, 'event_name': name, 'start_date': startDate, 'end_date': endDate, 'event_time': time, 'location': location, 'status': status};
+
+  bool canRecordAt(DateTime utc) {
+    final date = utc.toUtc().add(const Duration(hours: 8)).toIso8601String().substring(0, 10);
+    return !['Cancelled', 'Archived'].contains(status) && date.compareTo(startDate) >= 0 && date.compareTo(endDate ?? startDate) <= 0;
+  }
 }
 
 class MobileMember {

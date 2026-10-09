@@ -33,6 +33,9 @@ class AppController extends ChangeNotifier {
   Map<String, dynamic>? portalData;
   bool portalBusy = false;
   String? portalError;
+  Map<int, String> detailDownloads = {};
+  final Set<int> downloadingEvents = {};
+  bool catalogNeedsUpgrade = false;
 
   int get pendingCount => actions.where((a) => a.syncState == 'pending').length;
   int get issueCount => actions.where((a) => a.syncState == 'conflict' || a.syncState == 'rejected').length;
@@ -65,10 +68,13 @@ class AppController extends ChangeNotifier {
     attendance = await store.attendance();
     actions = await store.actions();
     lastRefresh = await store.lastRefresh();
+    detailDownloads = await store.detailDownloads();
+    catalogNeedsUpgrade = !await store.hasVersion2Catalog();
     notifyListeners();
   }
 
   Future<void> login(String url, String username, String password, String church) async {
+    if (downloadingEvents.isNotEmpty) throw StateError('Wait for attendance downloads to finish before signing in.');
     final parsed = Uri.tryParse(url.trim());
     if (parsed == null || !parsed.hasAuthority || (parsed.scheme != 'https' && !(kDebugMode && parsed.scheme == 'http' && ['localhost', '127.0.0.1', '10.0.2.2'].contains(parsed.host)))) {
       throw StateError('Use an HTTPS server URL (Android emulator may use http://10.0.2.2 in debug).');
@@ -113,12 +119,10 @@ class AppController extends ChangeNotifier {
   Future<void> record(MobileEvent event, MobileMember member, String status, String method) async {
     if (user == null) throw StateError('Sign in online once before recording attendance.');
     if (user!.role == 'viewer') throw StateError('Viewers cannot record attendance.');
-    if (event.status == 'Cancelled') throw StateError('This event was cancelled in the last downloaded catalog.');
+    event = events.where((item) => item.id == event.id).firstOrNull ?? event;
+    if (!detailDownloads.containsKey(event.id)) throw StateError('Download attendance details before recording for this event.');
     final now = DateTime.now().toUtc();
-    final manilaDate = now.add(const Duration(hours: 8)).toIso8601String().substring(0, 10);
-    if (manilaDate.compareTo(event.startDate) < 0 || manilaDate.compareTo(event.endDate ?? event.startDate) > 0) {
-      throw StateError('Attendance can only be recorded on the event date. Refresh data if the date changed.');
-    }
+    if (!event.canRecordAt(now)) throw StateError('Recording is available on the event date and is disabled for cancelled or archived events.');
     final base = attendance.where((a) => a.eventId == event.id && a.memberId == member.id).firstOrNull;
     final action = PendingAction(
       clientId: _uuid.v4(), eventId: event.id, memberId: member.id,
@@ -135,9 +139,10 @@ class AppController extends ChangeNotifier {
 
   Future<void> markAllPresent(MobileEvent event) async {
     if (user == null || user!.role == 'viewer') throw StateError('Only admins and operators can record attendance.');
+    event = events.where((item) => item.id == event.id).firstOrNull ?? event;
+    if (!detailDownloads.containsKey(event.id)) throw StateError('Download attendance details before recording for this event.');
     final now = DateTime.now().toUtc();
-    final date = now.add(const Duration(hours: 8)).toIso8601String().substring(0, 10);
-    if (event.status == 'Cancelled' || event.status == 'Archived' || date.compareTo(event.startDate) < 0 || date.compareTo(event.endDate ?? event.startDate) > 0) throw StateError('Recording is available on the active event date.');
+    if (!event.canRecordAt(now)) throw StateError('Recording is available on the active event date.');
     final queued = <PendingAction>[];
     for (final member in members) {
       final base = attendance.where((a) => a.eventId == event.id && a.memberId == member.id).firstOrNull;
@@ -157,7 +162,7 @@ class AppController extends ChangeNotifier {
     if (user?.role == 'viewer') return;
     if (busy || user == null || token == null || _api == null) return;
     final refreshed = lastRefresh == null ? null : DateTime.tryParse(lastRefresh!);
-    if (silent && pendingCount == 0 && refreshed != null && DateTime.now().toUtc().difference(refreshed.toUtc()) < const Duration(minutes: 15)) return;
+    if (silent && !catalogNeedsUpgrade && pendingCount == 0 && refreshed != null && DateTime.now().toUtc().difference(refreshed.toUtc()) < const Duration(minutes: 15)) return;
     busy = true;
     if (!silent) message = 'Syncing…';
     notifyListeners();
@@ -175,19 +180,42 @@ class AppController extends ChangeNotifier {
         }
       }
       await reload();
-      final catalog = await _api!.catalog(token!);
+      final catalog = await _api!.catalogV2(token!);
       await store.replaceCatalog(catalog);
       await reload();
       needsSignIn = false;
-      message = issueCount > 0 ? '$issueCount entries need review' : 'Up to date';
+      catalogNeedsUpgrade = false;
+      final available = events.where((event) => detailDownloads.containsKey(event.id)).length;
+      message = 'Synced: ${events.length} events; $available available offline${issueCount > 0 ? "; $issueCount entries need review" : ""}';
       unawaited(loadPortal());
     } on ApiFailure catch (e) {
       if (e.status == 401 || e.status == 403) needsSignIn = true;
-      if (!silent || e.status == 401 || e.status == 403) message = e.message;
+      message = 'Refresh failed: ${e.message}. Saved data is still available.';
     } catch (e) {
-      if (!silent) message = e.toString();
+      message = 'Refresh failed: $e. Saved data is still available.';
     } finally {
       busy = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> downloadEvent(int eventId) async {
+    if (_api == null || token == null) throw StateError('Sign in online to download attendance details.');
+    if (downloadingEvents.contains(eventId)) return;
+    downloadingEvents.add(eventId);
+    final api = _api!;
+    final accessToken = token!;
+    notifyListeners();
+    try {
+      final catalog = await api.catalogV2(accessToken, eventId: eventId);
+      if (api != _api || accessToken != token) throw StateError('Account changed during download. Retry.');
+      await store.replaceCatalog(catalog, eventDetail: true);
+      await reload();
+    } on ApiFailure catch (error) {
+      if (error.status == 401 || error.status == 403) needsSignIn = true;
+      rethrow;
+    } finally {
+      downloadingEvents.remove(eventId);
       notifyListeners();
     }
   }
@@ -262,6 +290,7 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
+    if (downloadingEvents.isNotEmpty) throw StateError('Wait for attendance downloads to finish before signing out.');
     if (busy) throw StateError('Wait for sync to finish before signing out.');
     if (pendingCount > 0) throw StateError('Sync pending attendance before signing out.');
     await store.clear();

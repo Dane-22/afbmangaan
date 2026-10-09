@@ -15,6 +15,8 @@ Reports and attendance audit support date, event, category, status, and search f
 
 The current production base URL is `https://constra.xandree.com`. Enter that URL in the Android app.
 
+Version 1.1.1 uses `api/mobile_catalog_v2.php` and `api/mobile_event_detail.php`. It discovers all church event dates/statuses through a paginated, consistent snapshot. Recent and future event details download automatically; select a historical event to download its attendance for offline review. The Events attendance button opens that specific event. Historic metadata without downloaded details is never shown as an empty attendance record. Refreshes retain historical downloads and pending attendance actions. The original catalog endpoint remains available to older APKs; update the APK to use historical discovery.
+
 The app requires an existing active `admin`, `operator`, or `viewer` account. Viewers do not record attendance or manage church data. Accounts marked for a password change must complete that step on the web dashboard first.
 
 ## Android development

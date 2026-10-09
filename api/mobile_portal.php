@@ -1,6 +1,7 @@
 <?php
 /** Church-scoped data for the native Android dashboard and management screens. */
 require_once __DIR__ . '/../functions/mobile_api.php';
+require_once __DIR__ . '/../functions/mobile_event_catalog.php';
 mobileMethod('GET');
 set_exception_handler(function (Throwable $error) {
     error_log('Mobile portal read failed: ' . $error->getMessage());
@@ -25,7 +26,7 @@ function portalScalar($sql, $params) {
 $profile = portalRows('SELECT id, fullname, username, role, church FROM users WHERE id=?', [$user['id']])[0];
 $canManage = in_array($user['role'], ['admin', 'operator'], true);
 $members = $canManage ? portalRows('SELECT id, fullname, category, ministry, contact, email, qr_token, status FROM attendees WHERE church=? ORDER BY fullname', [$church]) : [];
-$events = portalRows('SELECT id, event_name, start_date, end_date, event_time, location, type, description, status FROM events WHERE church=? ORDER BY start_date DESC, event_time DESC LIMIT 1000', [$church]);
+$events = mobileChurchEvents($church);
 $categories = portalRows('SELECT name FROM categories WHERE church=? ORDER BY name', [$church]);
 $stats = [
     'total_members' => portalScalar("SELECT COUNT(*) FROM attendees WHERE church=? AND status='Active'", [$church]),

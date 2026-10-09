@@ -199,7 +199,7 @@ class _PortalSectionState extends State<PortalSection> {
         Wrap(spacing: 6, children: [
           TextButton(onPressed: () => _edit('events', e, eventFields), child: const Text('Edit')),
           PopupMenuButton<String>(tooltip: 'Change status', onSelected: (status) => _act({'resource': 'events', 'action': 'status', 'id': e['id'], 'status': status}), itemBuilder: (_) => ['Upcoming', 'Ongoing', 'Completed', 'Cancelled', 'Archived'].map((s) => PopupMenuItem(value: s, child: Text(s))).toList(), child: const Padding(padding: EdgeInsets.all(8), child: Text('Status'))),
-          TextButton(onPressed: () => widget.onNavigate('attendance'), child: const Text('Attendance')),
+          TextButton(onPressed: () => widget.onNavigate('attendance:${e['id']}'), child: const Text('Attendance')),
         ]),
       ]))),
     ]);

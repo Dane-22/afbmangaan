@@ -11,7 +11,7 @@ function check($condition, $message) {
 }
 if (($argv[1] ?? '') === 'seed') {
     // Extract table definitions only. Never import existing users or attendance.
-    foreach (['afb_mangaan_db (3).sql', 'schema_update.sql'] as $file) {
+    foreach (['afb_mangaan_db (3).sql', 'schema_update.sql', 'mobile_schema.sql'] as $file) {
         preg_match_all('/CREATE TABLE IF NOT EXISTS.*?;\s*/s', file_get_contents(__DIR__ . '/../' . $file), $matches);
         foreach ($matches[0] as $sql) $pdo->exec($sql);
     }
@@ -77,4 +77,30 @@ check(count(getMemberAttendanceHistory(2)) === 0, 'Web history church isolation 
 check(count(getTopAttendees()) === 1, 'Web top attendee query failed');
 getReportSummary();
 getMonthlyComparison();
+// Historical metadata must remain discoverable; its detail download is explicit.
+$stmt = $pdo->prepare('INSERT INTO events (id,church,event_name,start_date,end_date,status) VALUES (?,\'AFB Mangaan\',?,\'2026-02-05\',\'2026-02-26\',?)');
+foreach ([60=>'Upcoming',61=>'Ongoing',62=>'Completed',63=>'Cancelled',64=>'Archived'] as $id=>$status) $stmt->execute([$id,'Historical '.$status,$status]);
+$pdo->exec("INSERT INTO attendance_logs (attendee_id,event_id,status,method,logged_by) VALUES (1,61,'Present','Manual',1)");
+$catalog = request('mobile_catalog_v2', 1, ['page'=>1]);
+$portal = request('mobile_portal', 1);
+check(array_column($catalog['events'],'id') === array_column($portal['events'],'id'), 'Catalog and portal discovery differ');
+check(count($catalog['events']) === 6, 'Historical event metadata was excluded');
+check(!in_array(61, $catalog['downloaded_event_ids']), 'Old attendance should require an explicit download');
+$detail = request('mobile_event_detail', 1, ['event_id'=>61]);
+check(count($detail['attendance']) === 1 && $detail['attendance'][0]['status'] === 'Present', 'Historical attendance falsely missing');
+request('mobile_event_detail', 1, ['event_id'=>2], 404);
+request('mobile_catalog_v2', 2, ['page'=>1], 403);
+request('mobile_event_detail', 2, ['event_id'=>61], 403);
+// Long-running events are downloaded automatically even if their start is old.
+$pdo->exec("UPDATE events SET end_date=CURDATE() WHERE id=61");
+$catalog = request('mobile_catalog_v2', 1, ['page'=>1]);
+check(in_array(61, $catalog['downloaded_event_ids']), 'Long-running event details were excluded');
+check(count($catalog['attendance']) === 2, 'Automatic attendance snapshot incomplete');
+for ($id=100; $id<205; $id++) $stmt->execute([$id,'Pagination '.$id,'Upcoming']);
+$page1 = request('mobile_catalog_v2', 1, ['page'=>1]);
+$page2 = request('mobile_catalog_v2', 1, ['page'=>2,'snapshot'=>$page1['snapshot']]);
+check(count($page1['events']) === 100 && count($page2['events']) === 11, 'Event pagination omitted metadata');
+$pdo->exec("UPDATE events SET event_name='Changed during download' WHERE id=100");
+request('mobile_catalog_v2', 1, ['page'=>2,'snapshot'=>$page1['snapshot']], 409);
+request('mobile_catalog_v2', 1, ['page'=>999], 400);
 echo "Mobile portal integration checks passed\n";

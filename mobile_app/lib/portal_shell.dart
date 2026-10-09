@@ -6,6 +6,7 @@ import 'main.dart';
 import 'portal_sections.dart';
 import 'report_page.dart';
 import 'assistant_page.dart';
+import 'attendance_events_page.dart';
 
 class _Destination {
   final String key, label;
@@ -38,6 +39,7 @@ class _PortalShellState extends State<PortalShell> {
   String selected = 'dashboard';
   bool createOnOpen = false;
   int navigationRevision = 0;
+  int? selectedEventId;
 
   @override
   void initState() {
@@ -64,7 +66,7 @@ class _PortalShellState extends State<PortalShell> {
     final role = widget.controller.user?.role;
     if (role == 'viewer' && !['dashboard', 'reports', 'welcome'].contains(key)) return;
     if (key == 'logs' && role != 'admin') return;
-    setState(() { selected = key; createOnOpen = parts.length > 1 && parts[1] == 'add'; navigationRevision++; });
+    setState(() { selected = key; selectedEventId = key == 'attendance' && parts.length > 1 ? int.tryParse(parts[1]) : null; createOnOpen = parts.length > 1 && parts[1] == 'add'; navigationRevision++; });
   }
 
   Future<void> _assistant() async {
@@ -115,7 +117,7 @@ class _PortalShellState extends State<PortalShell> {
         ListTile(leading: const Icon(Icons.logout), title: const Text('Sign out'), onTap: () { Navigator.pop(context); _logout(); }),
       ]))),
       body: selected == 'attendance'
-              ? HomePage(controller: c, embedded: true)
+              ? AttendanceEventsPage(key: ValueKey('attendance-$selectedEventId'), controller: c, initialEventId: selectedEventId, onNavigate: _navigate)
               : selected == 'reports' || selected == 'audit'
                   ? ReportPage(key: ValueKey(selected), controller: c, audit: selected == 'audit')
               : PortalSection(key: ValueKey('$selected-$navigationRevision'), controller: c, section: selected, createOnOpen: createOnOpen, onNavigate: _navigate),

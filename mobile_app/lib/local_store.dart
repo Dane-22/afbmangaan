@@ -24,15 +24,24 @@ class LocalStore {
     return _db!;
   }
 
-  Future<void> replaceCatalog(Map<String, dynamic> catalog) async {
+  Future<void> replaceCatalog(Map<String, dynamic> catalog, {bool eventDetail = false}) async {
     final database = await db;
+    final downloads = await detailDownloads();
     await database.transaction((tx) async {
-      await tx.delete('events');
+      final version2 = catalog['version'] == 2;
+      if (!eventDetail) await tx.delete('events');
       await tx.delete('members');
-      await tx.delete('attendance');
+      if (version2) {
+        for (final id in catalog['downloaded_event_ids'] as List) {
+          await tx.delete('attendance', where: 'event_id=?', whereArgs: [mobileId(id)]);
+          downloads[mobileId(id)] = catalog['fetched_at_utc'] as String;
+        }
+      } else {
+        await tx.delete('attendance');
+      }
       for (final item in (catalog['events'] as List)) {
         final event = MobileEvent.fromJson(Map<String, dynamic>.from(item as Map));
-        await tx.insert('events', {'id': event.id, 'data': jsonEncode(event.toJson())});
+        await tx.insert('events', {'id': event.id, 'data': jsonEncode(event.toJson())}, conflictAlgorithm: ConflictAlgorithm.replace);
       }
       for (final item in (catalog['members'] as List)) {
         final member = MobileMember.fromJson(Map<String, dynamic>.from(item as Map));
@@ -46,12 +55,33 @@ class LocalStore {
         final resolved = Map<String, dynamic>.from(item as Map);
         await tx.update('actions', {'sync_state': resolved['result'], 'reason': resolved['reason']}, where: 'client_id = ?', whereArgs: [resolved['client_id']]);
       }
-      await tx.insert('metadata', {'key': 'last_refresh', 'value': catalog['fetched_at_utc'] as String}, conflictAlgorithm: ConflictAlgorithm.replace);
+      if (version2) {
+        await tx.insert('metadata', {'key': 'detail_downloads', 'value': jsonEncode(downloads.map((id, time) => MapEntry('$id', time)))}, conflictAlgorithm: ConflictAlgorithm.replace);
+      }
+      if (!eventDetail) await tx.insert('metadata', {'key': 'last_refresh', 'value': catalog['fetched_at_utc'] as String}, conflictAlgorithm: ConflictAlgorithm.replace);
     });
   }
 
-  Future<List<MobileEvent>> events() async => (await (await db).query('events', orderBy: 'id DESC'))
-      .map((row) => MobileEvent.fromJson(jsonDecode(row['data'] as String) as Map<String, dynamic>)).toList();
+  Future<Map<int, String>> detailDownloads() async {
+    final rows = await (await db).query('metadata', where: 'key=?', whereArgs: ['detail_downloads']);
+    if (rows.isNotEmpty) return (jsonDecode(rows.first['value'] as String) as Map).map((id, time) => MapEntry(int.parse(id as String), time as String));
+    // Existing v1 snapshots contained complete attendance for their downloaded events.
+    final time = await lastRefresh();
+    return time == null ? {} : {for (final event in await events()) event.id: time};
+  }
+
+  Future<bool> hasVersion2Catalog() async => (await (await db).query('metadata', where: 'key=?', whereArgs: ['detail_downloads'])).isNotEmpty;
+
+  Future<List<MobileEvent>> events() async {
+    final rows = (await (await db).query('events')).map((row) => MobileEvent.fromJson(jsonDecode(row['data'] as String) as Map<String, dynamic>)).toList();
+    rows.sort((a, b) {
+      final date = b.startDate.compareTo(a.startDate);
+      if (date != 0) return date;
+      final time = (b.time ?? '').compareTo(a.time ?? '');
+      return time != 0 ? time : b.id.compareTo(a.id);
+    });
+    return rows;
+  }
 
   Future<List<MobileMember>> members() async => (await (await db).query('members', orderBy: 'id'))
       .map((row) => MobileMember.fromJson(jsonDecode(row['data'] as String) as Map<String, dynamic>)).toList();
