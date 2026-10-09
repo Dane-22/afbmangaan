@@ -195,18 +195,23 @@ class _ChatPanelState extends State<_ChatPanel> with WidgetsBindingObserver {
 
   Future<void> messageMenu(Map<String, dynamic> message) async {
     final selected = await showModalBottomSheet<String>(context: context, builder: (context) => SafeArea(child: Padding(padding: const EdgeInsets.all(20), child: Column(mainAxisSize: MainAxisSize.min, children: [ListTile(leading: const Icon(Icons.reply), title: const Text('Reply'), onTap: () => Navigator.pop(context, 'reply')), Wrap(spacing: 8, children: ['👍', '❤️', '😂', '😮', '🙏', '🎉'].map((emoji) => IconButton(onPressed: () => Navigator.pop(context, emoji), icon: Text(emoji, style: const TextStyle(fontSize: 26)))).toList())]))));
-    if (selected == 'reply' && mounted) setState(() => reply = message);
-    else if (selected != null) await action({'action': 'add_reaction', 'message_id': message['id'], 'emoji': selected});
+    if (selected == 'reply' && mounted) {
+      setState(() => reply = message);
+    } else if (selected != null) {
+      await action({'action': 'add_reaction', 'message_id': message['id'], 'emoji': selected});
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (room == null) return Column(children: [
+    if (room == null) {
+      return Column(children: [
       Padding(padding: const EdgeInsets.all(12), child: Row(children: [Expanded(child: TextField(decoration: const InputDecoration(hintText: 'Search channels', prefixIcon: Icon(Icons.search)), onChanged: (v) => setState(() => search = v.toLowerCase()))), IconButton(tooltip: 'Create group', onPressed: createRoom, icon: const Icon(Icons.group_add_outlined))])),
       if (loading) const LinearProgressIndicator(),
       if (error != null) ListTile(title: Text(error!), trailing: IconButton(onPressed: () => refresh(), icon: const Icon(Icons.refresh))),
       Expanded(child: RefreshIndicator(onRefresh: refresh, child: ListView(children: rooms.where((r) => _text(r['name']).toLowerCase().contains(search)).map((r) => ListTile(leading: const Icon(Icons.forum_outlined), title: Text(_text(r['name'])), subtitle: Text(_text(r['last_message']), maxLines: 2, overflow: TextOverflow.ellipsis), onTap: () { setState(() { room = r; messages = []; error = null; }); refresh(); })).toList()))),
     ]);
+    }
     final newest = messages.reversed.toList();
     return Column(children: [
       ListTile(leading: IconButton(tooltip: 'Back to channels', onPressed: () { setState(() { room = null; reply = null; error = null; }); refresh(); }, icon: const Icon(Icons.arrow_back)), title: Text(_text(room!['name'])), trailing: IconButton(tooltip: 'Refresh', onPressed: () => refresh(), icon: const Icon(Icons.refresh))),

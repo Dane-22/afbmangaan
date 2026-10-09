@@ -30,11 +30,13 @@ class _PortalSectionState extends State<PortalSection> {
   @override
   void initState() {
     super.initState();
-    if (widget.createOnOpen) WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (widget.createOnOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (widget.section == 'members') _edit('members', null, memberFields);
       if (widget.section == 'events') _edit('events', null, eventFields);
     });
+    }
   }
 
   Future<void> _act(Map<String, dynamic> action, {String? confirmation}) async {

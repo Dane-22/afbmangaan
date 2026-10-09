@@ -176,7 +176,11 @@ function getMemberAttendanceHistory($attendeeId, $limit = 50) {
         ORDER BY e.start_date DESC
         LIMIT ?");
     $church = $_SESSION['church'] ?? 'AFB Mangaan';
-    $stmt->execute([$attendeeId, $church, $church, $limit]);
+    $stmt->bindValue(1, (int)$attendeeId, PDO::PARAM_INT);
+    $stmt->bindValue(2, $church);
+    $stmt->bindValue(3, $church);
+    $stmt->bindValue(4, (int)$limit, PDO::PARAM_INT);
+    $stmt->execute();
     
     return $stmt->fetchAll();
 }
@@ -243,7 +247,10 @@ function getTopAttendees($limit = 20, $fromDate = null, $toDate = null) {
     $params[] = $limit;
     
     $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
+    foreach ($params as $index => $value) {
+        $stmt->bindValue($index + 1, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    $stmt->execute();
     
     return $stmt->fetchAll();
 }
