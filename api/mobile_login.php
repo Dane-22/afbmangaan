@@ -26,8 +26,8 @@ $user = $stmt->fetch();
 if (!$user || !password_verify($password, $user['password'])) {
     mobileJson(401, ['success' => false, 'error' => 'Invalid sign-in details']);
 }
-if (!in_array($user['role'], ['admin', 'operator'], true)) {
-    mobileJson(403, ['success' => false, 'error' => 'Mobile attendance requires an admin or operator account']);
+if (!in_array($user['role'], ['admin', 'operator', 'viewer'], true)) {
+    mobileJson(403, ['success' => false, 'error' => 'This account cannot use the mobile app']);
 }
 if ((int)$user['must_change_password'] === 1) {
     mobileJson(403, ['success' => false, 'error' => 'Change your password on the web dashboard first']);

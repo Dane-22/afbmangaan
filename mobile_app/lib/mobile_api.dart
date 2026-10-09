@@ -47,6 +47,11 @@ class MobileApi {
 
   Future<Map<String, dynamic>> catalog(String token) => _request('GET', 'mobile_catalog', token: token);
 
+  Future<Map<String, dynamic>> portal(String token) => _request('GET', 'mobile_portal', token: token);
+
+  Future<Map<String, dynamic>> portalAction(String token, Map<String, dynamic> action) =>
+      _request('POST', 'mobile_portal_action', token: token, body: action);
+
   Future<Map<String, dynamic>> sync(String token, List<Map<String, dynamic>> actions) =>
       _request('POST', 'mobile_sync', token: token, body: {'actions': actions});
 

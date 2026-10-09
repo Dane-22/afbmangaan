@@ -5,6 +5,7 @@
 
 $pageTitle = 'Events';
 require_once __DIR__ . '/includes/auth_check.php';
+requireRole(['admin', 'operator']);
 require_once __DIR__ . '/functions/attendance_logic.php';
 require_once __DIR__ . '/functions/csrf.php';
 
@@ -81,8 +82,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif ($action === 'status' && isset($_POST['id'], $_POST['status'])) {
         try {
-            $stmt = $pdo->prepare("UPDATE events SET status=? WHERE id=?");
-            $stmt->execute([$_POST['status'], $_POST['id']]);
+            $stmt = $pdo->prepare("UPDATE events SET status=? WHERE id=? AND church=?");
+            $stmt->execute([$_POST['status'], $_POST['id'], $_SESSION['church'] ?? 'AFB Mangaan']);
             $message = 'Event status updated';
             logActivity($_SESSION['user_id'], 'EVENT_STATUS', "Updated event {$_POST['id']} status to {$_POST['status']}");
         } catch (PDOException $e) {

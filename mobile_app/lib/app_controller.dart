@@ -29,6 +29,9 @@ class AppController extends ChangeNotifier {
   List<MobileMember> members = [];
   List<AttendanceState> attendance = [];
   List<PendingAction> actions = [];
+  Map<String, dynamic>? portalData;
+  bool portalBusy = false;
+  String? portalError;
 
   int get pendingCount => actions.where((a) => a.syncState == 'pending').length;
   int get issueCount => actions.where((a) => a.syncState == 'conflict' || a.syncState == 'rejected').length;
@@ -43,7 +46,10 @@ class AppController extends ChangeNotifier {
       await reload();
       _retryTimer = Timer.periodic(const Duration(minutes: 1), (_) => sync(silent: true));
       if (pendingCount > 0) unawaited(scheduleMobileSync().catchError((_) {}));
-      if (user != null && token != null) unawaited(sync(silent: true));
+      if (user != null && token != null) {
+        if (user!.role == 'viewer') { unawaited(loadPortal()); }
+        else { unawaited(sync(silent: true)); unawaited(loadPortal()); }
+      }
     } catch (e) {
       message = 'Could not open saved mobile data: $e';
     } finally {
@@ -77,6 +83,10 @@ class AppController extends ChangeNotifier {
         throw StateError('Sync pending entries under the current account before switching users.');
       }
       if (user != null && (nextUser.id != user!.id || nextUser.church != user!.church)) await store.clear();
+      if (user == null || nextUser.id != user!.id || nextUser.church != user!.church || baseUrl != url.trim()) {
+        portalData = null;
+        portalError = null;
+      }
       _api?.close();
       _api = candidate;
       baseUrl = url.trim();
@@ -93,7 +103,8 @@ class AppController extends ChangeNotifier {
       busy = false;
       notifyListeners();
     }
-    await sync(silent: true);
+    if (user?.role != 'viewer') await sync(silent: true);
+    await loadPortal();
   }
 
   Future<void> record(MobileEvent event, MobileMember member, String status, String method) async {
@@ -119,6 +130,7 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> sync({bool silent = false}) async {
+    if (user?.role == 'viewer') return;
     if (busy || user == null || token == null || _api == null) return;
     final refreshed = lastRefresh == null ? null : DateTime.tryParse(lastRefresh!);
     if (silent && pendingCount == 0 && refreshed != null && DateTime.now().toUtc().difference(refreshed.toUtc()) < const Duration(minutes: 15)) return;
@@ -144,6 +156,7 @@ class AppController extends ChangeNotifier {
       await reload();
       needsSignIn = false;
       message = issueCount > 0 ? '$issueCount entries need review' : 'Up to date';
+      unawaited(loadPortal());
     } on ApiFailure catch (e) {
       if (e.status == 401 || e.status == 403) needsSignIn = true;
       if (!silent || e.status == 401 || e.status == 403) message = e.message;
@@ -153,6 +166,31 @@ class AppController extends ChangeNotifier {
       busy = false;
       notifyListeners();
     }
+  }
+
+  Future<void> loadPortal() async {
+    if (portalBusy || token == null || _api == null) return;
+    portalBusy = true;
+    portalError = null;
+    notifyListeners();
+    try {
+      portalData = await _api!.portal(token!);
+    } on ApiFailure catch (e) {
+      portalError = e.message;
+      if (e.status == 401 || e.status == 403) needsSignIn = true;
+    } catch (e) {
+      portalError = e.toString();
+    } finally {
+      portalBusy = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> portalAction(Map<String, dynamic> action) async {
+    if (token == null || _api == null) throw StateError('Sign in online to make changes.');
+    await _api!.portalAction(token!, action);
+    await loadPortal();
+    if (action['resource'] == 'members' || action['resource'] == 'events') await sync(silent: true);
   }
 
   Future<List<Map<String, dynamic>>> conflicts() async {
@@ -181,6 +219,8 @@ class AppController extends ChangeNotifier {
     baseUrl = null;
     needsSignIn = false;
     message = null;
+    portalData = null;
+    portalError = null;
     await reload();
   }
 

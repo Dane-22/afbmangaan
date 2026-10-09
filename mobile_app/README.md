@@ -1,6 +1,6 @@
-# AFB Attendance for Android
+# AFB Santol for Android
 
-Flutter app for admins and operators. It downloads church events, members, and current attendance while online. Attendance recorded by QR scan or manual selection is saved to SQLite first, so recording continues without a time limit while offline. The app retries pending records in the foreground and through an Android WorkManager job when a network becomes available.
+Flutter app with a native public landing page and church portal navigation. Admins and operators can manage members, events, lineups, and stations while online. Viewers can see the dashboard and reports. Attendance recorded by QR scan or manual selection is saved to SQLite first, so recording continues without a time limit while offline. The app retries pending records in the foreground and through an Android WorkManager job when a network becomes available.
 
 ## Server setup
 
@@ -8,11 +8,11 @@ Flutter app for admins and operators. It downloads church events, members, and c
 2. Run `COMPOSER=composer.mobile.json composer install --no-dev --prefer-dist --no-interaction` in the website root. This installs the pinned JWT runtime needed by the mobile API. The website's older full Composer manifest has separate report dependencies and may require its own PHP compatibility work.
 3. Apply [`../mobile_schema.sql`](../mobile_schema.sql) to the existing database.
 4. Set `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, and a unique `JWT_SECRET` of at least 32 characters in the website's `.env` file. The secret is required for every mobile API request.
-5. Ensure the PHP deployment exposes `api/mobile_login.php`, `api/mobile_catalog.php`, `api/mobile_sync.php`, `api/mobile_conflicts.php`, and `api/mobile_resolve.php`.
+5. Ensure the PHP deployment exposes `api/mobile_login.php`, `api/mobile_catalog.php`, `api/mobile_sync.php`, `api/mobile_conflicts.php`, `api/mobile_resolve.php`, `api/mobile_portal.php`, and `api/mobile_portal_action.php`. The last two endpoints provide online portal data and management actions.
 
 The current production base URL is `https://constra.xandree.com`. Enter that URL in the Android app.
 
-The app requires an existing active `admin` or `operator` account. Accounts marked for a password change must complete that step on the web dashboard first.
+The app requires an existing active `admin`, `operator`, or `viewer` account. Viewers do not record attendance or manage church data. Accounts marked for a password change must complete that step on the web dashboard first.
 
 ## Android development
 
@@ -32,7 +32,7 @@ For a local WAMP server in the Android emulator, a debug build accepts `http://1
 - An admin can review conflicts in the app while online. The review records the admin's choice.
 - A one-hour API token may expire while offline. Recording continues; the operator signs in again to sync. Pending records remain on the device across app restarts.
 - A cancelled event, archived member, changed event date, or invalid device time is shown as an issue instead of being silently overwritten.
-- Catalog data is a snapshot. The app shows its last download time, and the server validates every submission again during sync.
+- Catalog data is a snapshot. The app shows its last download time, and the server validates every submission again during sync. Portal management screens require a live connection and use fresh church-scoped API data.
 
 The existing website remains the authority for members, events, and attendance. The mobile database is a cache and durable outgoing queue. Signing out clears downloaded data and is blocked while unsynced actions remain.
 

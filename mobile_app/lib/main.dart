@@ -6,6 +6,8 @@ import 'package:workmanager/workmanager.dart';
 import 'app_controller.dart';
 import 'background_sync.dart';
 import 'models.dart';
+import 'landing_page.dart';
+import 'portal_shell.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +23,7 @@ class AttendanceApp extends StatefulWidget {
 
 class _AttendanceAppState extends State<AttendanceApp> {
   final controller = AppController();
+  bool dark = true;
   @override
   void initState() {
     super.initState();
@@ -35,13 +38,17 @@ class _AttendanceAppState extends State<AttendanceApp> {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        title: 'AFB Attendance',
-        theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF174F3D)), useMaterial3: true),
+        title: 'AFB Santol',
+        themeMode: dark ? ThemeMode.dark : ThemeMode.light,
+        theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFC9A227), surface: const Color(0xFFFAF9F6)), useMaterial3: true),
+        darkTheme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: afbGold, brightness: Brightness.dark, surface: afbDark), useMaterial3: true),
         home: AnimatedBuilder(
           animation: controller,
           builder: (context, _) {
             if (!controller.ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-            return controller.user == null ? LoginPage(controller: controller) : HomeGate(controller: controller);
+            return controller.user == null
+                ? LandingPage(signedIn: false, onTheme: () => setState(() => dark = !dark), onEnter: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => LoginPage(controller: controller))))
+                : HomeGate(controller: controller, onTheme: () => setState(() => dark = !dark));
           },
         ),
       );
@@ -49,7 +56,8 @@ class _AttendanceAppState extends State<AttendanceApp> {
 
 class HomeGate extends StatefulWidget {
   final AppController controller;
-  const HomeGate({super.key, required this.controller});
+  final VoidCallback onTheme;
+  const HomeGate({super.key, required this.controller, required this.onTheme});
   @override
   State<HomeGate> createState() => _HomeGateState();
 }
@@ -102,7 +110,7 @@ class _HomeGateState extends State<HomeGate> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) => unlocked
-      ? HomePage(controller: widget.controller)
+      ? PortalShell(controller: widget.controller, onTheme: widget.onTheme)
       : Scaffold(
           appBar: AppBar(title: const Text('Unlock attendance')),
           body: Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -135,7 +143,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    url.text = widget.controller.baseUrl ?? '';
+    url.text = widget.controller.baseUrl ?? 'https://constra.xandree.com';
     church = widget.controller.user?.church ?? 'AFB Mangaan';
   }
 
@@ -152,7 +160,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() { submitting = true; error = null; });
     try {
       await widget.controller.login(url.text, username.text, password.text, church);
-      if (mounted && widget.reauthentication) Navigator.of(context).pop();
+      if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) setState(() => error = e.toString().replaceFirst('Bad state: ', ''));
     } finally {
@@ -162,7 +170,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text(widget.reauthentication ? 'Sign in to sync' : 'AFB Attendance')),
+        appBar: AppBar(title: Text(widget.reauthentication ? 'Sign in to sync' : 'AFB Santol')),
         body: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -171,9 +179,9 @@ class _LoginPageState extends State<LoginPage> {
               child: Form(
                 key: formKey,
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  const Icon(Icons.event_available, size: 72, color: Color(0xFF174F3D)),
+                  const Icon(Icons.church, size: 72, color: afbGold),
                   const SizedBox(height: 16),
-                  Text(widget.reauthentication ? 'Reconnect your account' : 'Sign in online once to download events and members', textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleLarge),
+                  Text(widget.reauthentication ? 'Reconnect your account' : 'Welcome Back', textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 24),
                   TextFormField(controller: url, keyboardType: TextInputType.url, decoration: const InputDecoration(labelText: 'Server URL', hintText: 'https://your-site.example', border: OutlineInputBorder()), validator: (value) => (value == null || value.trim().isEmpty) ? 'Enter the server URL' : null),
                   const SizedBox(height: 12),
@@ -197,7 +205,8 @@ class _LoginPageState extends State<LoginPage> {
 
 class HomePage extends StatefulWidget {
   final AppController controller;
-  const HomePage({super.key, required this.controller});
+  final bool embedded;
+  const HomePage({super.key, required this.controller, this.embedded = false});
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -224,7 +233,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final c = widget.controller;
     return AnimatedBuilder(animation: c, builder: (context, _) => Scaffold(
-          appBar: AppBar(title: const Text('Attendance'), actions: [
+          appBar: widget.embedded ? null : AppBar(title: const Text('Attendance'), actions: [
             IconButton(tooltip: 'Sync now', onPressed: c.busy ? null : () => c.sync(), icon: const Icon(Icons.sync)),
             PopupMenuButton<String>(onSelected: (choice) async {
               if (choice == 'issues') Navigator.push(context, MaterialPageRoute(builder: (_) => IssuesPage(controller: c)));

@@ -6,6 +6,7 @@
 
 $pageTitle = 'Attendance Audit';
 require_once __DIR__ . '/includes/auth_check.php';
+requireRole(['admin', 'operator']);
 require_once __DIR__ . '/functions/attendance_logic.php';
 
 // Get selected date (default to today)

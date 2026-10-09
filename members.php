@@ -5,6 +5,7 @@
 
 $pageTitle = 'Members';
 require_once __DIR__ . '/includes/auth_check.php';
+requireRole(['admin', 'operator']);
 require_once __DIR__ . '/functions/attendance_logic.php';
 require_once __DIR__ . '/functions/report_engine.php';
 require_once __DIR__ . '/functions/csrf.php';
@@ -51,8 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($action === 'delete' && isset($_POST['id'])) {
             $pdo = getDB();
             try {
-                $stmt = $pdo->prepare("UPDATE attendees SET status='Archived' WHERE id=?");
-                $stmt->execute([$_POST['id']]);
+                $stmt = $pdo->prepare("UPDATE attendees SET status='Archived' WHERE id=? AND church=?");
+                $stmt->execute([$_POST['id'], $_SESSION['church'] ?? 'AFB Mangaan']);
                 $message = 'Member archived successfully';
                 logActivity($_SESSION['user_id'], 'MEMBER_ARCHIVE', "Archived member ID: {$_POST['id']}");
             } catch (PDOException $e) {

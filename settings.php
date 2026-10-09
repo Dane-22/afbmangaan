@@ -5,6 +5,7 @@
 
 $pageTitle = 'Settings';
 require_once __DIR__ . '/includes/auth_check.php';
+requireRole(['admin', 'operator']);
 require_once __DIR__ . '/functions/csrf.php';
 
 $message = '';
