@@ -3,6 +3,7 @@
  * Header Template
  * AFB Mangaan Attendance System
  */
+require_once __DIR__ . '/../functions/csrf.php';
 ?>
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
@@ -10,6 +11,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $pageTitle ?? 'AFB Mangaan Attendance System'; ?></title>
+    <script>window.CSRF_TOKEN = <?php echo json_encode(generateCsrfToken()); ?>;</script>
     
     <!-- Preconnect & DNS Prefetch -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">

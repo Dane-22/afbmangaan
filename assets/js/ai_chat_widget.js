@@ -376,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         fetch('api/ai_assistant.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.CSRF_TOKEN || '' },
             body: JSON.stringify({ query: queryText })
         })
             .then(res => res.json())
@@ -693,7 +693,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             fetch('api/chat.php?action=send_message', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.CSRF_TOKEN || '' },
                 body: JSON.stringify(payload)
             })
                 .then(res => res.json())
@@ -709,7 +709,7 @@ document.addEventListener('DOMContentLoaded', function () {
     window.toggleReaction = function (messageId, emoji) {
         fetch('api/chat.php?action=add_reaction', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.CSRF_TOKEN || '' },
             body: JSON.stringify({ message_id: messageId, emoji: emoji })
         })
             .then(res => res.json())
@@ -743,7 +743,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             fetch('api/chat.php?action=create_room', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.CSRF_TOKEN || '' },
                 body: JSON.stringify({ name: groupName })
             })
                 .then(res => res.json())

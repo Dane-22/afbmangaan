@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'app_controller.dart';
+import 'portal_charts.dart';
+import 'native_export.dart';
 
 List<Map<String, dynamic>> _rows(Map<String, dynamic>? data, String key) =>
     ((data?[key] as List?) ?? []).map((e) => Map<String, dynamic>.from(e as Map)).toList();
@@ -12,7 +14,8 @@ class PortalSection extends StatefulWidget {
   final AppController controller;
   final String section;
   final ValueChanged<String> onNavigate;
-  const PortalSection({super.key, required this.controller, required this.section, required this.onNavigate});
+  final bool createOnOpen;
+  const PortalSection({super.key, required this.controller, required this.section, required this.onNavigate, this.createOnOpen = false});
   @override
   State<PortalSection> createState() => _PortalSectionState();
 }
@@ -23,6 +26,16 @@ class _PortalSectionState extends State<PortalSection> {
   int? eventId;
   String fromDate = '';
   String toDate = '';
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.createOnOpen) WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (widget.section == 'members') _edit('members', null, memberFields);
+      if (widget.section == 'events') _edit('events', null, eventFields);
+    });
+  }
 
   Future<void> _act(Map<String, dynamic> action, {String? confirmation}) async {
     if (confirmation != null) {
@@ -76,7 +89,7 @@ class _PortalSectionState extends State<PortalSection> {
   }
 
   Widget _heading(String title, {String? subtitle, Widget? action}) => Padding(padding: const EdgeInsets.fromLTRB(2, 8, 2, 15), child: Row(children: [
-    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontFamily: 'serif', fontSize: 25)), if (subtitle != null) Text(subtitle)])),
+    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontFamily: 'Cinzel', fontSize: 25)), if (subtitle != null) Text(subtitle)])),
     if (action != null) action,
   ]));
 
@@ -101,14 +114,19 @@ class _PortalSectionState extends State<PortalSection> {
         _metric('At Risk Members', _value(stats['at_risk_count']), Icons.warning_amber_outlined),
       ]),
       const SizedBox(height: 16),
-      _card('Attendance Trends', Column(children: [if (trends.isEmpty) const Text('No attendance data yet.'), ...trends.map((row) => ListTile(dense: true, title: Text(_value(row['month'])), trailing: Text(_value(row['present_count']))))]), action: TextButton(onPressed: () => widget.onNavigate('reports'), child: const Text('View Reports'))),
-      _card('Categories', categories.isEmpty ? const Text('No category data yet.') : Column(children: categories.entries.map((e) => ListTile(dense: true, title: Text(e.key), trailing: Text('${e.value}'))).toList())),
+      _card('Attendance Trends', TrendChart(labels: trends.map((row) => _value(row['month'])).toList(), values: trends.map((row) => _id(row['present_count'])).toList()), action: TextButton(onPressed: () => widget.onNavigate('reports'), child: const Text('View Reports'))),
+      _card('Categories', CategoryChart(categories: categories)),
+      _card('Member Retention', Column(children: [
+        _detail('Consistent', stats['consistent_count']),
+        _detail('At risk', stats['at_risk_count']),
+        const Text('Based on attendance over the last three months.', style: TextStyle(fontSize: 12)),
+      ])),
       _card('Recent Activity', Column(children: _rows(data, 'audit').take(5).map((row) => ListTile(dense: true, title: Text('${row['fullname']} · ${row['status']}'), subtitle: Text('${row['event_name']} · ${row['log_time']}'))).toList())),
       _card('Quick Actions', Wrap(spacing: 8, runSpacing: 8, children: [
-        FilledButton.icon(onPressed: () => widget.onNavigate('attendance'), icon: const Icon(Icons.check_circle_outline), label: const Text('Take Attendance')),
         if (widget.controller.user?.role != 'viewer') ...[
-          OutlinedButton.icon(onPressed: () => widget.onNavigate('members'), icon: const Icon(Icons.person_add_alt), label: const Text('Members')),
-          OutlinedButton.icon(onPressed: () => widget.onNavigate('events'), icon: const Icon(Icons.event), label: const Text('Events')),
+          FilledButton.icon(onPressed: () => widget.onNavigate('attendance'), icon: const Icon(Icons.check_circle_outline), label: const Text('Take Attendance')),
+          OutlinedButton.icon(onPressed: () => widget.onNavigate('members:add'), icon: const Icon(Icons.person_add_alt), label: const Text('Add Member')),
+          OutlinedButton.icon(onPressed: () => widget.onNavigate('events:add'), icon: const Icon(Icons.event), label: const Text('Create Event')),
         ],
       ])),
     ]);
@@ -140,7 +158,13 @@ class _PortalSectionState extends State<PortalSection> {
   Widget _members(Map<String, dynamic> data) {
     final rows = _rows(data, 'members').where((m) => (query.isEmpty || '${m['fullname']} ${m['category']} ${m['qr_token']}'.toLowerCase().contains(query)) && (filter.isEmpty || m['status'] == filter)).toList();
     return Column(children: [
-      _heading('Members', subtitle: '${rows.length} members', action: IconButton(tooltip: 'Add member', onPressed: () => _edit('members', null, memberFields), icon: const Icon(Icons.person_add_alt))),
+      _heading('Members', subtitle: '${rows.length} members', action: Row(mainAxisSize: MainAxisSize.min, children: [IconButton(tooltip: 'Export members', onPressed: () async {
+        try {
+          await NativeExport.table('csv', 'afb_members', 'AFB Members', const ['Name', 'Category', 'Ministry', 'Contact', 'Email', 'QR Token', 'Status'], rows.map((m) => ['fullname', 'category', 'ministry', 'contact', 'email', 'qr_token', 'status'].map((key) => _value(m[key])).toList()).toList());
+        } catch (e) {
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+        }
+      }, icon: const Icon(Icons.download_outlined)), IconButton(tooltip: 'Add member', onPressed: () => _edit('members', null, memberFields), icon: const Icon(Icons.person_add_alt))])),
       _search('Search name, category, or QR code'),
       _choice(['', 'Active', 'Inactive', 'Archived'], {'': 'All', 'Active': 'Active', 'Inactive': 'Inactive', 'Archived': 'Archived'}),
       if (rows.isEmpty) _empty('No matching members.'),
@@ -231,7 +255,7 @@ class _PortalSectionState extends State<PortalSection> {
 
   Widget _logs(Map<String, dynamic> data) {
     final rows = _rows(data, 'logs').where((l) => query.isEmpty || '${l['action']} ${l['details']} ${l['user_name']}'.toLowerCase().contains(query)).toList();
-    return Column(children: [_heading('System Logs', subtitle: 'Most recent 200 entries'), _search('Search logs'), if (rows.isEmpty) _empty('No matching logs.'), ...rows.map((l) => Card(child: ListTile(leading: const Icon(Icons.list_alt), title: Text(_value(l['action'])), subtitle: Text('${l['user_name']} · ${l['timestamp']}\n${l['details']}'), isThreeLine: true)))]);
+    return Column(children: [_heading('System Logs', subtitle: 'Most recent 200 entries', action: IconButton(tooltip: 'Clear old logs', onPressed: () => _act({'resource': 'logs', 'action': 'clear'}, confirmation: 'Clear this church’s logs older than 30 days?'), icon: const Icon(Icons.delete_outline))), _search('Search logs'), if (rows.isEmpty) _empty('No matching logs.'), ...rows.map((l) => Card(child: ListTile(leading: const Icon(Icons.list_alt), title: Text(_value(l['action'])), subtitle: Text('${l['user_name']} · ${l['timestamp']}\n${l['details']}'), isThreeLine: true)))]);
   }
 
   Widget _settings(Map<String, dynamic> data) {

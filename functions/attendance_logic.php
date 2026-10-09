@@ -13,6 +13,19 @@ require_once __DIR__ . '/make_sync.php';
  */
 function recordAttendance($eventId, $attendeeId, $status = 'Present', $method = 'Manual', $notes = '') {
     $pdo = getDB();
+    if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['admin', 'operator'], true)) {
+        return ['success' => false, 'message' => 'Only admins and operators can record attendance'];
+    }
+    if (!in_array($status, ['Present', 'Absent'], true)) return ['success' => false, 'message' => 'Invalid attendance status'];
+    $church = $_SESSION['church'] ?? '';
+    $target = $pdo->prepare("SELECT e.start_date, e.end_date, e.status FROM events e JOIN attendees a ON a.id=? WHERE e.id=? AND e.church=? AND a.church=? AND a.status='Active' LIMIT 1");
+    $target->execute([$attendeeId, $eventId, $church, $church]);
+    $event = $target->fetch();
+    if (!$event) return ['success' => false, 'message' => 'Event or member not found in this church'];
+    $today = (new DateTimeImmutable('now', new DateTimeZone('Asia/Manila')))->format('Y-m-d');
+    if (in_array($event['status'], ['Cancelled', 'Archived'], true) || $today < $event['start_date'] || $today > ($event['end_date'] ?: $event['start_date'])) {
+        return ['success' => false, 'message' => 'Attendance recording is available on the active event date'];
+    }
     
     try {
         // Check if already recorded
@@ -317,9 +330,11 @@ function getAttendanceTrends($months = 6) {
  */
 function deleteAttendance($attendanceId) {
     $pdo = getDB();
+    if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['admin', 'operator'], true)) return ['success' => false, 'message' => 'Access denied'];
     
-    $stmt = $pdo->prepare("DELETE FROM attendance_logs WHERE id = ?");
-    $stmt->execute([$attendanceId]);
+    $stmt = $pdo->prepare("DELETE FROM attendance_logs WHERE id = ? AND event_id IN (SELECT id FROM events WHERE church=?) AND attendee_id IN (SELECT id FROM attendees WHERE church=?)");
+    $church = $_SESSION['church'] ?? '';
+    $stmt->execute([$attendanceId, $church, $church]);
     
     logActivity($_SESSION['user_id'] ?? null, 'ATTENDANCE_DELETE', "Deleted attendance record ID: {$attendanceId}");
     

@@ -26,3 +26,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: Cinzel
+      fonts:
+        - asset: assets/fonts/Cinzel.ttf
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter.ttf

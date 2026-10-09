@@ -8,6 +8,7 @@ import 'background_sync.dart';
 import 'models.dart';
 import 'landing_page.dart';
 import 'portal_shell.dart';
+import 'native_export.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,8 +41,8 @@ class _AttendanceAppState extends State<AttendanceApp> {
   Widget build(BuildContext context) => MaterialApp(
         title: 'AFB Santol',
         themeMode: dark ? ThemeMode.dark : ThemeMode.light,
-        theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFC9A227), surface: const Color(0xFFFAF9F6)), useMaterial3: true),
-        darkTheme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: afbGold, brightness: Brightness.dark, surface: afbDark), useMaterial3: true),
+        theme: ThemeData(fontFamily: 'Inter', colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFC9A227), surface: const Color(0xFFFAF9F6)), useMaterial3: true),
+        darkTheme: ThemeData(fontFamily: 'Inter', colorScheme: ColorScheme.fromSeed(seedColor: afbGold, brightness: Brightness.dark, surface: afbDark), useMaterial3: true),
         home: AnimatedBuilder(
           animation: controller,
           builder: (context, _) {
@@ -298,6 +299,31 @@ class EventPage extends StatefulWidget {
 class _EventPageState extends State<EventPage> {
   String query = '';
 
+  Future<void> export() async {
+    final c = widget.controller;
+    try {
+      final rows = c.members.map((m) {
+        final current = c.attendance.where((a) => a.eventId == widget.event.id && a.memberId == m.id).firstOrNull;
+        final pending = c.actions.where((a) => a.eventId == widget.event.id && a.memberId == m.id && a.syncState == 'pending').firstOrNull;
+        return [m.name, m.category ?? '', m.qrToken ?? '', pending?.status ?? current?.status ?? 'Not Recorded', pending == null ? 'Synced' : 'Pending sync', pending?.occurredAtUtc ?? current?.logTimeUtc ?? ''];
+      }).toList();
+      await NativeExport.table('csv', 'attendance_${widget.event.id}', widget.event.name, const ['Member', 'Category', 'QR Token', 'Status', 'Sync State', 'Recorded Time UTC'], rows);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
+
+  Future<void> markAll() async {
+    final yes = await showDialog<bool>(context: context, builder: (context) => AlertDialog(title: const Text('Mark all present?'), content: Text('Mark all downloaded members present for ${widget.event.name}? Entries will be saved on this device and synced.'), actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')), FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Mark Present'))]));
+    if (yes != true) return;
+    try {
+      await widget.controller.markAllPresent(widget.event);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(widget.controller.message ?? 'Attendance queued')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Bad state: ', ''))));
+    }
+  }
+
   Future<void> mark(MobileMember member, String status, String method) async {
     try {
       await widget.controller.record(widget.event, member, status, method);
@@ -314,7 +340,7 @@ class _EventPageState extends State<EventPage> {
         final today = DateTime.now().toUtc().add(const Duration(hours: 8)).toIso8601String().substring(0, 10);
         final canRecord = widget.event.status != 'Cancelled' && today.compareTo(widget.event.startDate) >= 0 && today.compareTo(widget.event.endDate ?? widget.event.startDate) <= 0;
         return Scaffold(
-          appBar: AppBar(title: Text(widget.event.name), actions: [IconButton(tooltip: 'Scan QR code', onPressed: canRecord ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => ScanPage(controller: c, event: widget.event))) : null, icon: const Icon(Icons.qr_code_scanner))]),
+          appBar: AppBar(title: Text(widget.event.name), actions: [IconButton(tooltip: 'Export attendance', onPressed: export, icon: const Icon(Icons.download_outlined)), IconButton(tooltip: 'Scan QR code', onPressed: canRecord ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => ScanPage(controller: c, event: widget.event))) : null, icon: const Icon(Icons.qr_code_scanner)), PopupMenuButton<String>(onSelected: (_) => markAll(), itemBuilder: (_) => [PopupMenuItem(value: 'all', enabled: canRecord, child: const Text('Mark all present'))])]),
           body: Column(children: [
             Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Text('${widget.event.startDate} · ${widget.event.status}'),

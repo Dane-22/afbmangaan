@@ -107,6 +107,7 @@
         const API_BASE = window.API_BASE || 'api';
         return fetch(`${API_BASE}/record_attendance.php`, {
             method: 'POST',
+            headers: { 'X-CSRF-Token': window.CSRF_TOKEN || '' },
             body: formData
         })
         .then(response => response.json())

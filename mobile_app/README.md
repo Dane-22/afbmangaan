@@ -8,7 +8,9 @@ Flutter app with a native public landing page and church portal navigation. Admi
 2. Run `COMPOSER=composer.mobile.json composer install --no-dev --prefer-dist --no-interaction` in the website root. This installs the pinned JWT runtime needed by the mobile API. The website's older full Composer manifest has separate report dependencies and may require its own PHP compatibility work.
 3. Apply [`../mobile_schema.sql`](../mobile_schema.sql) to the existing database.
 4. Set `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, and a unique `JWT_SECRET` of at least 32 characters in the website's `.env` file. The secret is required for every mobile API request.
-5. Ensure the PHP deployment exposes `api/mobile_login.php`, `api/mobile_catalog.php`, `api/mobile_sync.php`, `api/mobile_conflicts.php`, `api/mobile_resolve.php`, `api/mobile_portal.php`, and `api/mobile_portal_action.php`. The last two endpoints provide online portal data and management actions.
+5. Ensure the PHP deployment exposes `api/mobile_login.php`, `api/mobile_catalog.php`, `api/mobile_sync.php`, `api/mobile_conflicts.php`, `api/mobile_resolve.php`, `api/mobile_portal.php`, `api/mobile_portal_action.php`, and `api/mobile_report.php`. The portal endpoints provide online management and church-scoped reporting. The native assistant and group chat use `api/ai_assistant.php` and `api/chat.php` with the same account token.
+
+Reports and attendance audit support date, event, category, status, and search filters with pagination. CSV and XLSX exports use Android's file picker; PDF opens Android printing, where Save as PDF can be selected. Members and event attendance also provide CSV exports. The public landing page bundles Inter and Cinzel fonts and loads the same image URLs as the web page; images need internet access.
 
 The current production base URL is `https://constra.xandree.com`. Enter that URL in the Android app.
 

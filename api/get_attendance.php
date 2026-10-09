@@ -5,6 +5,8 @@
  */
 
 require_once __DIR__ . '/../functions/attendance_logic.php';
+require_once __DIR__ . '/../functions/api_identity.php';
+apiIdentity(['admin', 'operator'], false);
 
 header('Content-Type: application/json');
 

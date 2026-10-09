@@ -9,23 +9,13 @@ require_once __DIR__ . '/../functions/report_engine.php';
 require_once __DIR__ . '/../functions/cache.php';
 require_once __DIR__ . '/../functions/jwt_auth.php';
 require_once __DIR__ . '/../functions/auth_functions.php';
+require_once __DIR__ . '/../functions/api_identity.php';
 
 header('Content-Type: application/json');
 
 // Support both JWT (for external API) and Session (for dashboard)
-$headers = getallheaders();
-$userId = null;
-if (isset($headers['Authorization'])) {
-    $userId = requireJwtAuth();
-} else {
-    require_once __DIR__ . '/../config/session.php';
-    if (!isLoggedIn()) {
-        http_response_code(401);
-        echo json_encode(['success' => false, 'error' => 'Unauthorized - Please log in']);
-        exit;
-    }
-    $userId = $_SESSION['user_id'];
-}
+$identity = apiIdentity();
+$userId = $identity['id'];
 
 $type = $_GET['type'] ?? 'all';
 $church = getCurrentChurch();

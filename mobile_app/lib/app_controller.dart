@@ -16,6 +16,7 @@ class AppController extends ChangeNotifier {
   final Uuid _uuid = const Uuid();
   MobileApi? _api;
   Timer? _retryTimer;
+  int _portalGeneration = 0;
 
   MobileUser? user;
   String? token;
@@ -88,6 +89,8 @@ class AppController extends ChangeNotifier {
         portalError = null;
       }
       _api?.close();
+      _portalGeneration++;
+      portalBusy = false;
       _api = candidate;
       baseUrl = url.trim();
       user = nextUser;
@@ -109,6 +112,7 @@ class AppController extends ChangeNotifier {
 
   Future<void> record(MobileEvent event, MobileMember member, String status, String method) async {
     if (user == null) throw StateError('Sign in online once before recording attendance.');
+    if (user!.role == 'viewer') throw StateError('Viewers cannot record attendance.');
     if (event.status == 'Cancelled') throw StateError('This event was cancelled in the last downloaded catalog.');
     final now = DateTime.now().toUtc();
     final manilaDate = now.add(const Duration(hours: 8)).toIso8601String().substring(0, 10);
@@ -126,6 +130,26 @@ class AppController extends ChangeNotifier {
     unawaited(scheduleMobileSync().catchError((_) {}));
     message = '$status queued for ${member.name}';
     notifyListeners();
+    unawaited(sync(silent: true));
+  }
+
+  Future<void> markAllPresent(MobileEvent event) async {
+    if (user == null || user!.role == 'viewer') throw StateError('Only admins and operators can record attendance.');
+    final now = DateTime.now().toUtc();
+    final date = now.add(const Duration(hours: 8)).toIso8601String().substring(0, 10);
+    if (event.status == 'Cancelled' || event.status == 'Archived' || date.compareTo(event.startDate) < 0 || date.compareTo(event.endDate ?? event.startDate) > 0) throw StateError('Recording is available on the active event date.');
+    final queued = <PendingAction>[];
+    for (final member in members) {
+      final base = attendance.where((a) => a.eventId == event.id && a.memberId == member.id).firstOrNull;
+      final pending = actions.where((a) => a.eventId == event.id && a.memberId == member.id && a.syncState == 'pending').firstOrNull;
+      if ((pending?.status ?? base?.status) == 'Present') continue;
+      queued.add(PendingAction(clientId: _uuid.v4(), eventId: event.id, memberId: member.id, status: 'Present', method: 'Manual', occurredAtUtc: now.toIso8601String(), baseStatus: base?.status, baseLogTimeUtc: base?.logTimeUtc));
+    }
+    await store.addActions(queued);
+    await reload();
+    message = '${queued.length} attendance entries queued';
+    notifyListeners();
+    unawaited(scheduleMobileSync().catchError((_) {}));
     unawaited(sync(silent: true));
   }
 
@@ -170,19 +194,27 @@ class AppController extends ChangeNotifier {
 
   Future<void> loadPortal() async {
     if (portalBusy || token == null || _api == null) return;
+    final generation = ++_portalGeneration;
+    final api = _api!;
+    final accessToken = token!;
     portalBusy = true;
     portalError = null;
     notifyListeners();
     try {
-      portalData = await _api!.portal(token!);
+      final response = await api.portal(accessToken);
+      if (generation == _portalGeneration) portalData = response;
     } on ApiFailure catch (e) {
+      if (generation != _portalGeneration) return;
       portalError = e.message;
       if (e.status == 401 || e.status == 403) needsSignIn = true;
     } catch (e) {
+      if (generation != _portalGeneration) return;
       portalError = e.toString();
     } finally {
-      portalBusy = false;
-      notifyListeners();
+      if (generation == _portalGeneration) {
+        portalBusy = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -190,7 +222,29 @@ class AppController extends ChangeNotifier {
     if (token == null || _api == null) throw StateError('Sign in online to make changes.');
     await _api!.portalAction(token!, action);
     await loadPortal();
-    if (action['resource'] == 'members' || action['resource'] == 'events') await sync(silent: true);
+    if (action['resource'] == 'members' || action['resource'] == 'events') await sync();
+  }
+
+  Future<Map<String, dynamic>> report(Map<String, dynamic> filters) async {
+    if (_api == null || token == null) throw StateError('Sign in online to load reports.');
+    try {
+      return await _api!.report(token!, filters);
+    } on ApiFailure catch (e) {
+      if (e.status == 401 || e.status == 403) { needsSignIn = true; notifyListeners(); }
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> assistant(String query) async {
+    if (_api == null || token == null) throw StateError('Sign in online to use the assistant.');
+    try { return await _api!.assistant(token!, query); }
+    on ApiFailure catch (e) { if (e.status == 401) { needsSignIn = true; notifyListeners(); } rethrow; }
+  }
+
+  Future<Map<String, dynamic>> chat(Map<String, dynamic> action) async {
+    if (_api == null || token == null) throw StateError('Sign in online to use group chat.');
+    try { return await _api!.chat(token!, action); }
+    on ApiFailure catch (e) { if (e.status == 401) { needsSignIn = true; notifyListeners(); } rethrow; }
   }
 
   Future<List<Map<String, dynamic>>> conflicts() async {
@@ -213,6 +267,8 @@ class AppController extends ChangeNotifier {
     await store.clear();
     await _secure.deleteAll();
     _api?.close();
+    _portalGeneration++;
+    portalBusy = false;
     _api = null;
     user = null;
     token = null;
@@ -226,6 +282,7 @@ class AppController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _portalGeneration++;
     _retryTimer?.cancel();
     _api?.close();
     super.dispose();

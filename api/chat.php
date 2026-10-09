@@ -6,7 +6,8 @@
 
 header('Content-Type: application/json');
 
-require_once __DIR__ . '/../includes/auth_check.php';
+require_once __DIR__ . '/../functions/api_identity.php';
+$identity = apiIdentity();
 
 // Verify authentication
 if (!isLoggedIn()) {
@@ -15,10 +16,10 @@ if (!isLoggedIn()) {
 }
 
 $pdo = getDB();
-$userId = $_SESSION['user_id'] ?? ($_SESSION['id'] ?? 1);
-$userName = $_SESSION['fullname'] ?? ($_SESSION['name'] ?? 'Admin User');
-$userRole = $_SESSION['role'] ?? 'Admin';
-$church = $_SESSION['church'] ?? 'AFB Mangaan';
+$userId = (int)$identity['id'];
+$userName = $identity['fullname'];
+$userRole = $identity['role'];
+$church = $identity['church'];
 
 // Ensure Chat Tables Exist
 ensureChatTablesExist($pdo);
@@ -27,6 +28,8 @@ ensureChatTablesExist($pdo);
 $rawInput = file_get_contents('php://input');
 $input = json_decode($rawInput, true) ?? $_POST;
 $action = $_GET['action'] ?? ($input['action'] ?? 'get_rooms');
+if (!is_string($action)) apiAccessError(400, 'Invalid chat action');
+if (in_array($action, ['send_message', 'create_room', 'add_reaction'], true)) apiWriteAccess();
 
 try {
     switch ($action) {
@@ -69,7 +72,9 @@ try {
             break;
 
         case 'create_room':
-            $roomName = trim($input['name'] ?? '');
+            if (!is_string($input['name'] ?? null)) apiAccessError(400, 'Invalid room name');
+            $roomName = trim($input['name']);
+            if (mb_strlen($roomName) > 150) apiAccessError(400, 'Room name is too long');
             if (empty($roomName)) {
                 echo json_encode(['success' => false, 'message' => 'Room name is required.']);
                 exit();
@@ -102,18 +107,19 @@ try {
                 echo json_encode(['success' => false, 'message' => 'Invalid room ID.']);
                 exit();
             }
+            chatRoomAccess($roomId, $church);
 
             $stmt = $pdo->prepare("
                 SELECT m.id, m.room_id, m.sender_id, m.sender_name, m.message, m.reply_to_id, m.created_at,
                        rm.message as reply_message, rm.sender_name as reply_sender
                 FROM chat_messages m
-                LEFT JOIN chat_messages rm ON m.reply_to_id = rm.id
+                LEFT JOIN chat_messages rm ON m.reply_to_id = rm.id AND rm.room_id=m.room_id
                 WHERE m.room_id = ?
-                ORDER BY m.id ASC
+                ORDER BY m.id DESC
                 LIMIT 100
             ");
             $stmt->execute([$roomId]);
-            $messages = $stmt->fetchAll();
+            $messages = array_reverse($stmt->fetchAll());
 
             // Fetch reactions for these messages
             $messageIds = array_column($messages, 'id');
@@ -170,13 +176,17 @@ try {
 
         case 'send_message':
             $roomId = (int)($input['room_id'] ?? 0);
-            $message = trim($input['message'] ?? '');
+            if (!is_string($input['message'] ?? null)) apiAccessError(400, 'Invalid message');
+            $message = trim($input['message']);
+            if (mb_strlen($message) > 5000) apiAccessError(400, 'Message is too long');
             $replyToId = !empty($input['reply_to_id']) ? (int)$input['reply_to_id'] : null;
 
             if ($roomId <= 0 || empty($message)) {
                 echo json_encode(['success' => false, 'message' => 'Room ID and message content are required.']);
                 exit();
             }
+            chatRoomAccess($roomId, $church);
+            if ($replyToId) chatMessageAccess($replyToId, $church, $roomId);
 
             $stmt = $pdo->prepare("
                 INSERT INTO chat_messages (room_id, sender_id, sender_name, message, reply_to_id)
@@ -190,7 +200,7 @@ try {
                 SELECT m.id, m.room_id, m.sender_id, m.sender_name, m.message, m.reply_to_id, m.created_at,
                        rm.message as reply_message, rm.sender_name as reply_sender
                 FROM chat_messages m
-                LEFT JOIN chat_messages rm ON m.reply_to_id = rm.id
+                LEFT JOIN chat_messages rm ON m.reply_to_id = rm.id AND rm.room_id=m.room_id
                 WHERE m.id = ?
             ");
             $fetchStmt->execute([$msgId]);
@@ -206,12 +216,15 @@ try {
 
         case 'add_reaction':
             $messageId = (int)($input['message_id'] ?? 0);
+            if (!is_string($input['emoji'] ?? '👍')) apiAccessError(400, 'Invalid reaction');
             $emoji = trim($input['emoji'] ?? '👍');
+            if (mb_strlen($emoji) > 20) apiAccessError(400, 'Reaction is too long');
 
             if ($messageId <= 0 || empty($emoji)) {
                 echo json_encode(['success' => false, 'message' => 'Message ID and emoji are required.']);
                 exit();
             }
+            chatMessageAccess($messageId, $church);
 
             // Check if user already reacted with this emoji
             $checkStmt = $pdo->prepare("SELECT id FROM chat_reactions WHERE message_id = ? AND user_id = ? AND emoji = ?");
@@ -239,7 +252,22 @@ try {
     }
 } catch (Exception $e) {
     error_log("Chat API Error: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Chat server error: ' . $e->getMessage()]);
+    apiAccessError(503, 'Chat server is temporarily unavailable');
+}
+
+function chatRoomAccess($roomId, $church) {
+    $stmt = getDB()->prepare('SELECT id FROM chat_rooms WHERE id=? AND (church=? OR church IS NULL) LIMIT 1');
+    $stmt->execute([$roomId, $church]);
+    if (!$stmt->fetch()) apiAccessError(404, 'Chat room not found');
+}
+
+function chatMessageAccess($messageId, $church, $roomId = null) {
+    $sql = 'SELECT m.id FROM chat_messages m JOIN chat_rooms r ON r.id=m.room_id WHERE m.id=? AND (r.church=? OR r.church IS NULL)';
+    $params = [$messageId, $church];
+    if ($roomId !== null) { $sql .= ' AND m.room_id=?'; $params[] = $roomId; }
+    $stmt = getDB()->prepare($sql . ' LIMIT 1');
+    $stmt->execute($params);
+    if (!$stmt->fetch()) apiAccessError(404, 'Message not found in this chat room');
 }
 
 /**

@@ -7,12 +7,14 @@
 require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../includes/auth_check.php';
 require_once __DIR__ . '/../config/db.php';
+requireRole(['admin', 'operator']);
 
 header('Content-Type: text/csv');
 header('Content-Disposition: attachment; filename="members_' . date('Y-m-d') . '.csv"');
 
 $pdo = getDB();
-$stmt = $pdo->query("SELECT fullname, category, ministry, contact, email, qr_token, status, created_at FROM attendees ORDER BY fullname");
+$stmt = $pdo->prepare("SELECT fullname, category, ministry, contact, email, qr_token, status, created_at FROM attendees WHERE church=? ORDER BY fullname");
+$stmt->execute([$_SESSION['church'] ?? '']);
 $members = $stmt->fetchAll();
 
 $output = fopen('php://output', 'w');

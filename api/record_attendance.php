@@ -4,6 +4,9 @@
  * Records attendance to the MySQL database
  */
 
+require_once __DIR__ . '/../functions/api_identity.php';
+apiIdentity(['admin', 'operator'], false);
+apiWriteAccess();
 require_once __DIR__ . '/../functions/attendance_logic.php';
 
 header('Content-Type: application/json');

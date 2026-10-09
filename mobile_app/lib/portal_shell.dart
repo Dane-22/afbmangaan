@@ -4,6 +4,8 @@ import 'app_controller.dart';
 import 'landing_page.dart';
 import 'main.dart';
 import 'portal_sections.dart';
+import 'report_page.dart';
+import 'assistant_page.dart';
 
 class _Destination {
   final String key, label;
@@ -34,6 +36,8 @@ class PortalShell extends StatefulWidget {
 
 class _PortalShellState extends State<PortalShell> {
   String selected = 'dashboard';
+  bool createOnOpen = false;
+  int navigationRevision = 0;
 
   @override
   void initState() {
@@ -51,7 +55,21 @@ class _PortalShellState extends State<PortalShell> {
 
   void _select(String key) {
     Navigator.of(context).pop();
-    setState(() => selected = key);
+    _navigate(key);
+  }
+
+  void _navigate(String destination) {
+    final parts = destination.split(':');
+    final key = parts.first;
+    final role = widget.controller.user?.role;
+    if (role == 'viewer' && !['dashboard', 'reports', 'welcome'].contains(key)) return;
+    if (key == 'logs' && role != 'admin') return;
+    setState(() { selected = key; createOnOpen = parts.length > 1 && parts[1] == 'add'; navigationRevision++; });
+  }
+
+  Future<void> _assistant() async {
+    final destination = await Navigator.push<String>(context, MaterialPageRoute(builder: (_) => AssistantPage(controller: widget.controller, onTheme: widget.onTheme)));
+    if (mounted && destination != null) _navigate(destination);
   }
 
   @override
@@ -59,16 +77,17 @@ class _PortalShellState extends State<PortalShell> {
     final c = widget.controller;
     final role = c.user?.role ?? '';
     final destinations = role == 'viewer' ? _destinations.where((d) => d.key == 'dashboard').toList() : _destinations.where((d) => !d.adminOnly || role == 'admin').toList();
-    final title = _destinations.where((d) => d.key == selected).firstOrNull?.label ?? 'Dashboard';
+    final title = selected == 'reports' ? 'Reports' : _destinations.where((d) => d.key == selected).firstOrNull?.label ?? 'Dashboard';
     if (selected == 'welcome') {
-      return LandingPage(signedIn: true, onTheme: widget.onTheme, onEnter: () => setState(() => selected = 'dashboard'));
+      return LandingPage(signedIn: true, onTheme: widget.onTheme, onEnter: () => setState(() => selected = 'dashboard'), onAttendance: role == 'viewer' ? null : () => setState(() => selected = 'attendance'));
     }
     return Scaffold(
       appBar: AppBar(
-        title: Text(title, style: const TextStyle(fontFamily: 'serif')),
+        title: Text(title, style: const TextStyle(fontFamily: 'Cinzel')),
         actions: [
+          if (c.needsSignIn) IconButton(tooltip: 'Sign in again', onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => LoginPage(controller: c, reauthentication: true))), icon: const Icon(Icons.login)),
           if (selected == 'attendance') IconButton(tooltip: 'Sync now', onPressed: c.busy ? null : () => c.sync(), icon: const Icon(Icons.sync)),
-          if (selected != 'attendance') IconButton(tooltip: 'Refresh', onPressed: c.portalBusy ? null : c.loadPortal, icon: const Icon(Icons.refresh)),
+          if (!['attendance', 'audit', 'reports'].contains(selected)) IconButton(tooltip: 'Refresh', onPressed: c.portalBusy ? null : c.loadPortal, icon: const Icon(Icons.refresh)),
           IconButton(tooltip: 'Toggle theme', onPressed: widget.onTheme, icon: const Icon(Icons.brightness_6_outlined)),
         ],
       ),
@@ -76,7 +95,7 @@ class _PortalShellState extends State<PortalShell> {
         Container(width: double.infinity, padding: const EdgeInsets.all(22), decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF332B17), afbDark])), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Icon(Icons.church, color: afbGold, size: 36),
           const SizedBox(height: 12),
-          const Text('AFB SANTOL', style: TextStyle(color: afbGold, fontFamily: 'serif', fontSize: 22, letterSpacing: 2)),
+          const Text('AFB SANTOL', style: TextStyle(color: afbGold, fontFamily: 'Cinzel', fontSize: 22, letterSpacing: 2)),
           const SizedBox(height: 7),
           Text(c.user?.church ?? '', style: const TextStyle(color: Colors.white70)),
           Text('${c.user?.name ?? ''} • ${role.toUpperCase()}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
@@ -87,6 +106,7 @@ class _PortalShellState extends State<PortalShell> {
           ...destinations.map((d) => ListTile(leading: Icon(d.icon), title: Text(d.label), selected: selected == d.key, onTap: () => _select(d.key))),
           const Divider(),
           ListTile(leading: const Icon(Icons.bar_chart_outlined), title: const Text('Reports'), selected: selected == 'reports', onTap: () => _select('reports')),
+          ListTile(leading: const Icon(Icons.forum_outlined), title: const Text('Assistant & Group Chat'), onTap: () { Navigator.pop(context); _assistant(); }),
           if (role != 'viewer') ...[
             ListTile(leading: const Icon(Icons.sync_problem_outlined), title: const Text('Sync history and issues'), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => IssuesPage(controller: c))); }),
             if (role == 'admin') ListTile(leading: const Icon(Icons.rule_outlined), title: const Text('Review conflicts'), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => ConflictsPage(controller: c))); }),
@@ -96,7 +116,10 @@ class _PortalShellState extends State<PortalShell> {
       ]))),
       body: selected == 'attendance'
               ? HomePage(controller: c, embedded: true)
-              : PortalSection(key: ValueKey(selected), controller: c, section: selected, onNavigate: (next) => setState(() => selected = next)),
+              : selected == 'reports' || selected == 'audit'
+                  ? ReportPage(key: ValueKey(selected), controller: c, audit: selected == 'audit')
+              : PortalSection(key: ValueKey('$selected-$navigationRevision'), controller: c, section: selected, createOnOpen: createOnOpen, onNavigate: _navigate),
+      floatingActionButton: FloatingActionButton(tooltip: 'Assistant and group chat', onPressed: _assistant, child: const Icon(Icons.auto_awesome)),
     );
   });
 }

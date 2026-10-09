@@ -404,7 +404,7 @@ function quickMark(attendeeId, status) {
     
     fetch('api/record_attendance.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': window.CSRF_TOKEN || '' },
         body: body
     })
     .then(response => {
@@ -588,7 +588,7 @@ function markAllPresent() {
             
             fetch('api/record_attendance.php', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': window.CSRF_TOKEN || '' },
                 body: `event_id=${eventId}&attendee_id=${attendeeId}&status=Present&method=Manual`
             })
             .then(response => response.json())

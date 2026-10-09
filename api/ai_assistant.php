@@ -7,7 +7,9 @@
 
 header('Content-Type: application/json');
 
-require_once __DIR__ . '/../includes/auth_check.php';
+require_once __DIR__ . '/../functions/api_identity.php';
+$identity = apiIdentity();
+apiWriteAccess();
 require_once __DIR__ . '/../functions/attendance_logic.php';
 require_once __DIR__ . '/../functions/activity_logger.php';
 
@@ -21,6 +23,7 @@ $church = $_SESSION['church'] ?? 'AFB Mangaan';
 
 // Read JSON input
 $input = json_decode(file_get_contents('php://input'), true);
+if (!is_array($input) || !is_string($input['query'] ?? null) || strlen($input['query']) > 5000) apiAccessError(400, 'Enter a valid query');
 $rawQuery = trim($input['query'] ?? '');
 
 if (empty($rawQuery)) {
@@ -32,6 +35,8 @@ if (empty($rawQuery)) {
 }
 
 $queryLower = strtolower($rawQuery);
+if (preg_match('/(time in|time-in|record attendance|check in|check-in|naka-attend|dumating|pumasok si|(mark|set)\s+.+\s+(as absent|absent))/i', $queryLower) && !hasRole(['admin', 'operator'])) apiAccessError(403, 'Only admins and operators can record attendance');
+if (preg_match('/(system logs|activity logs|security logs|audit trail|recent activity)/i', $queryLower) && !hasRole('admin')) apiAccessError(403, 'System logs are available to admins');
 $pdo = getDB();
 
 $reply = '';
@@ -124,8 +129,8 @@ elseif (preg_match('/(mark|set)\s+(.+)\s+(as absent|absent)/i', $queryLower, $ma
         }
 
         if ($todayEvent) {
-            recordAttendance($todayEvent['id'], $member['id'], 'Absent', 'AI Assistant', 'Marked absent via AI Assistant');
-            $reply = "📋 Marked **{$member['fullname']}** as **Absent** for **" . htmlspecialchars($todayEvent['event_name']) . "**.";
+            $result = recordAttendance($todayEvent['id'], $member['id'], 'Absent', 'AI Assistant', 'Marked absent via AI Assistant');
+            $reply = $result['success'] ? "📋 Marked **{$member['fullname']}** as **Absent** for **" . htmlspecialchars($todayEvent['event_name']) . "**." : $result['message'];
         } else {
             $reply = "No active event found to update attendance.";
         }
@@ -524,7 +529,9 @@ elseif (preg_match('/(draft|description|announcement|text|invitation|promote|pos
 
 // INTENT: SYSTEM LOGS QUERY
 elseif (preg_match('/(system logs|activity logs|security logs|audit trail|recent activity)/i', $queryLower)) {
-    $recentActivity = getRecentActivity(5);
+    $stmt = $pdo->prepare('SELECT sl.*, u.fullname AS user_name FROM system_logs sl JOIN users u ON u.id=sl.user_id WHERE u.church=? ORDER BY sl.timestamp DESC LIMIT 5');
+    $stmt->execute([$church]);
+    $recentActivity = $stmt->fetchAll();
 
     if (!empty($recentActivity)) {
         $reply = "📜 **Recent System Audit Logs ({$church})**\n\n";
@@ -543,6 +550,14 @@ elseif (preg_match('/(system logs|activity logs|security logs|audit trail|recent
 // =========================================================================
 // STAGE 3: EXPLICIT PAGE NAVIGATION (ALL 9 SYSTEM PAGES MAPPED)
 // =========================================================================
+elseif (preg_match('/(event lineup|song lineup|lineups)/i', $queryLower)) {
+    $reply = 'Opening **Event Lineups**.';
+    $actionCommand = ['type' => 'NAVIGATE', 'url' => 'event_lineup.php'];
+}
+elseif (preg_match('/(event station|stations)/i', $queryLower)) {
+    $reply = 'Opening **Event Stations**.';
+    $actionCommand = ['type' => 'NAVIGATE', 'url' => 'event_stations.php'];
+}
 elseif (preg_match('/(attendance audit|audit history)/i', $queryLower) && preg_match('/(go|open|navigate|punta|pakita|show|view|page)/i', $queryLower)) {
     $reply = "📋 Navigating to **Attendance Audit**...";
     $actionCommand = ['type' => 'NAVIGATE', 'url' => 'attendance_audit.php'];

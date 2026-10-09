@@ -52,6 +52,15 @@ class MobileApi {
   Future<Map<String, dynamic>> portalAction(String token, Map<String, dynamic> action) =>
       _request('POST', 'mobile_portal_action', token: token, body: action);
 
+  Future<Map<String, dynamic>> report(String token, Map<String, dynamic> filters) =>
+      _request('POST', 'mobile_report', token: token, body: filters);
+
+  Future<Map<String, dynamic>> assistant(String token, String query) =>
+      _request('POST', 'ai_assistant', token: token, body: {'query': query});
+
+  Future<Map<String, dynamic>> chat(String token, Map<String, dynamic> action) =>
+      _request('POST', 'chat', token: token, body: action);
+
   Future<Map<String, dynamic>> sync(String token, List<Map<String, dynamic>> actions) =>
       _request('POST', 'mobile_sync', token: token, body: {'actions': actions});
 

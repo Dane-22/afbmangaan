@@ -64,6 +64,13 @@ class LocalStore {
 
   Future<void> addAction(PendingAction action) async => (await db).insert('actions', action.toDb());
 
+  Future<void> addActions(List<PendingAction> actions) async {
+    final database = await db;
+    await database.transaction((tx) async {
+      for (final action in actions) { await tx.insert('actions', action.toDb()); }
+    });
+  }
+
   Future<void> setResult(String clientId, String result, String? reason) async {
     final database = await db;
     await database.transaction((tx) async {

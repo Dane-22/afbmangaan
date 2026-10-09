@@ -35,6 +35,11 @@ function portalOwnStation($id, $church) {
     $stmt->execute([$id, $church]);
     if (!$stmt->fetch()) portalFail('Station not found in this church', 404);
 }
+function portalOwnMember($id, $church) {
+    $stmt = getDB()->prepare('SELECT id FROM attendees WHERE id=? AND church=? LIMIT 1');
+    $stmt->execute([$id, $church]);
+    if (!$stmt->fetch()) portalFail('Member not found in this church', 404);
+}
 function portalDate($value) {
     $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
     if (!$date || $date->format('Y-m-d') !== $value) portalFail('Enter a valid date');
@@ -57,6 +62,7 @@ try {
             if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) portalFail('Invalid email address');
             if (!empty($input['id'])) {
                 $id = portalId($input, 'id');
+                portalOwnMember($id, $church);
                 $stmt = $pdo->prepare('UPDATE attendees SET fullname=?, category=?, ministry=?, contact=?, email=?, status=? WHERE id=? AND church=?');
                 $stmt->execute([$name, $category, $ministry ?: null, $contact, $email, $status, $id, $church]);
                 $logAction = 'MEMBER_UPDATE';
@@ -70,6 +76,7 @@ try {
             $logDetails = "Mobile member $id: $name";
         } elseif ($action === 'archive') {
             $id = portalId($input, 'id');
+            portalOwnMember($id, $church);
             $stmt = $pdo->prepare("UPDATE attendees SET status='Archived' WHERE id=? AND church=?");
             $stmt->execute([$id, $church]);
             $logAction = 'MEMBER_ARCHIVE';
@@ -94,6 +101,7 @@ try {
             $description = portalText($input, 'description', 10000);
             if (!empty($input['id'])) {
                 $id = portalId($input, 'id');
+                portalOwnEvent($id, $church);
                 $stmt = $pdo->prepare('UPDATE events SET event_name=?, start_date=?, end_date=?, event_time=?, location=?, type=?, description=? WHERE id=? AND church=?');
                 $stmt->execute([$name, $start, $end, $time ?: null, $location, $type, $description, $id, $church]);
                 $logAction = 'EVENT_UPDATE';
@@ -115,6 +123,7 @@ try {
             $id = portalId($input, 'id');
             $status = portalText($input, 'status', 20);
             if (!in_array($status, ['Upcoming','Ongoing','Completed','Cancelled','Archived'], true)) portalFail('Invalid event status');
+            portalOwnEvent($id, $church);
             $pdo->prepare('UPDATE events SET status=? WHERE id=? AND church=?')->execute([$status, $id, $church]);
             $logAction = 'EVENT_STATUS';
             $logDetails = "Mobile event $id: $status";
@@ -168,6 +177,12 @@ try {
             $logDetails = "Mobile assignment $id";
         } else portalFail('Unknown station action');
         $logAction = 'STATION_' . strtoupper($action);
+    } elseif ($resource === 'logs' && $action === 'clear') {
+        if ($user['role'] !== 'admin') portalFail('Only admins can clear logs', 403);
+        $stmt = $pdo->prepare('DELETE FROM system_logs WHERE timestamp < DATE_SUB(NOW(), INTERVAL 30 DAY) AND user_id IN (SELECT id FROM users WHERE church=?)');
+        $stmt->execute([$church]);
+        $logAction = 'LOGS_CLEARED';
+        $logDetails = 'Cleared ' . $stmt->rowCount() . ' old church logs in Android';
     } elseif ($resource === 'settings' && $action === 'password') {
         $current = (string)($input['current_password'] ?? '');
         $new = (string)($input['new_password'] ?? '');
