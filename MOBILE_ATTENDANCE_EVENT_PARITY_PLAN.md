@@ -2,7 +2,11 @@
 
 Date: 2026-10-09
 
-Status: Implementation approved and completed for APK 1.1.1. Automated verification has passed; production rollout requires renewed temporary SSH access. The sections below preserve the investigation and accepted implementation plan.
+Status: Implemented and deployed for APK 1.1.1 (version code 3) on 2026-10-09. Flutter analysis, 10 tests, Android build, isolated API checks, and production read-only checks passed. Events and Attendance now discover the same 5 AFB Mangaan events and 54 AFB Lettac Sur events. Production record counts were preserved. The sections below preserve the investigation and accepted implementation plan.
+
+Update download: https://constra.xandree.com/mobile_app/build/app/outputs/flutter-apk/afb-android-1.1.1-update.apk
+
+Protected pre-deployment backup: `/root/afb-backups/portal-20261009T085905Z`. The updated APK must be installed to use the versioned catalog; older APKs retain their original catalog behavior. Physical-device confirmation is still required after installing the update.
 
 ## Confirmed cause
 
