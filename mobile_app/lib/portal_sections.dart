@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'app_controller.dart';
-import 'models.dart';
 
 List<Map<String, dynamic>> _rows(Map<String, dynamic>? data, String key) =>
     ((data?[key] as List?) ?? []).map((e) => Map<String, dynamic>.from(e as Map)).toList();
@@ -302,7 +301,9 @@ class _EditFormState extends State<EditForm> {
   @override
   void initState() {
     super.initState();
-    for (final field in widget.fields) values[field.key] = TextEditingController(text: _value(widget.row?[field.key] ?? (field.key == 'status' ? 'Active' : field.key == 'type' ? 'Sunday Service' : '')));
+    for (final field in widget.fields) {
+      values[field.key] = TextEditingController(text: _value(widget.row?[field.key] ?? (field.key == 'status' ? 'Active' : field.key == 'type' ? 'Sunday Service' : '')));
+    }
   }
   @override
   void dispose() {
