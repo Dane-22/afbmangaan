@@ -14,4 +14,4 @@ The server migration is [`mobile_schema.sql`](mobile_schema.sql). Mobile API end
 
 ## Verification and deployment
 
-Flutter static analysis, unit tests, and a debug APK build have completed. PHP syntax checks and sync-rule tests have completed. Live database, network, camera, background scheduling, and release signing require validation in the target deployment; see the app README for setup and test instructions.
+Flutter static analysis, unit tests, and a debug APK build have completed. PHP syntax checks and sync-rule tests have completed. The production database migration, HTTPS API catalog, and empty sync request have been validated. An actual attendance write, camera, background scheduling, and release signing still require validation; see the app README for setup and test instructions.

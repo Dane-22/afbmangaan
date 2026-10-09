@@ -10,6 +10,8 @@ Flutter app for admins and operators. It downloads church events, members, and c
 4. Set `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, and a unique `JWT_SECRET` of at least 32 characters in the website's `.env` file. The secret is required for every mobile API request.
 5. Ensure the PHP deployment exposes `api/mobile_login.php`, `api/mobile_catalog.php`, `api/mobile_sync.php`, `api/mobile_conflicts.php`, and `api/mobile_resolve.php`.
 
+The current production base URL is `https://constra.xandree.com`. Enter that URL in the Android app.
+
 The app requires an existing active `admin` or `operator` account. Accounts marked for a password change must complete that step on the web dashboard first.
 
 ## Android development

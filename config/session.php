@@ -6,9 +6,12 @@
  * Centralized session security settings
  */
 
-// Detect if using HTTPS
-$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || 
-           (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
+// Trust the HTTPS marker only from the local Nginx reverse proxy.
+$proxiedHttps = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true) &&
+                strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+           (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ||
+           $proxiedHttps;
 
 // Configure session security settings if session is not active
 if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
