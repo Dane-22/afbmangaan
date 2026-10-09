@@ -5,7 +5,7 @@ Flutter app for admins and operators. It downloads church events, members, and c
 ## Server setup
 
 1. Deploy the PHP/MySQL website at an HTTPS address that the Android device can reach.
-2. Run `composer install` in the website root. Mobile tokens use the project's existing `firebase/php-jwt` dependency.
+2. Run `COMPOSER=composer.mobile.json composer install --no-dev --prefer-dist --no-interaction` in the website root. This installs the pinned JWT runtime needed by the mobile API. The website's older full Composer manifest has separate report dependencies and may require its own PHP compatibility work.
 3. Apply [`../mobile_schema.sql`](../mobile_schema.sql) to the existing database.
 4. Set `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, and a unique `JWT_SECRET` of at least 32 characters in the website's `.env` file. The secret is required for every mobile API request.
 5. Ensure the PHP deployment exposes `api/mobile_login.php`, `api/mobile_catalog.php`, `api/mobile_sync.php`, `api/mobile_conflicts.php`, and `api/mobile_resolve.php`.

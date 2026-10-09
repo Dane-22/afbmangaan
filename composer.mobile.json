@@ -1,0 +1,12 @@
+{
+    "name": "afb-mangaan/mobile-api-runtime",
+    "description": "Production runtime dependency for the AFB Mangaan mobile API",
+    "require": {
+        "php": "^8.0",
+        "firebase/php-jwt": "7.2.1"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist"
+    }
+}
