@@ -52,13 +52,13 @@ try {
     $logDetails = '';
     if ($resource === 'members') {
         if ($action === 'save') {
-            $name = portalText($input, 'fullname', 255, true);
-            $category = portalText($input, 'category', 100, true);
-            $ministry = portalText($input, 'ministry', 255);
-            $contact = portalText($input, 'contact', 100);
-            $email = portalText($input, 'email', 255);
+            $name = portalText($input, 'fullname', 100, true);
+            $category = portalText($input, 'category', 50, true);
+            $ministry = portalText($input, 'ministry', 100);
+            $contact = portalText($input, 'contact', 20);
+            $email = portalText($input, 'email', 100);
             $status = portalText($input, 'status', 20);
-            if (!in_array($status, ['Active', 'Inactive', 'Archived'], true)) portalFail('Invalid member status');
+            if (!in_array($status, ['Active', 'Archived'], true)) portalFail('Invalid member status');
             if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) portalFail('Invalid email address');
             if (!empty($input['id'])) {
                 $id = portalId($input, 'id');
@@ -82,22 +82,23 @@ try {
             $logAction = 'MEMBER_ARCHIVE';
             $logDetails = "Mobile member $id";
         } elseif ($action === 'category') {
-            $name = portalText($input, 'name', 100, true);
+            $name = portalText($input, 'name', 50, true);
             $pdo->prepare('INSERT IGNORE INTO categories (church,name) VALUES (?,?)')->execute([$church, $name]);
             $logAction = 'CATEGORY_CREATE';
             $logDetails = "Mobile category $name";
         } else portalFail('Unknown member action');
     } elseif ($resource === 'events') {
         if ($action === 'save') {
-            $name = portalText($input, 'event_name', 255, true);
+            $name = portalText($input, 'event_name', 150, true);
             $start = portalDate(portalText($input, 'start_date', 10, true));
             $end = portalText($input, 'end_date', 10) ?: $start;
             portalDate($end);
             if ($end < $start) portalFail('End date must follow start date');
             $time = portalText($input, 'event_time', 8);
             if ($time !== '' && !preg_match('/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/', $time)) portalFail('Invalid event time');
-            $location = portalText($input, 'location', 255);
+            $location = portalText($input, 'location', 200);
             $type = portalText($input, 'type', 100, true);
+            if (!in_array($type, ['Sunday Service','Midweek Service','Special Event','Meeting','Other'], true)) portalFail('Invalid event type');
             $description = portalText($input, 'description', 10000);
             if (!empty($input['id'])) {
                 $id = portalId($input, 'id');

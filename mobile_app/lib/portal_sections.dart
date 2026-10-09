@@ -154,7 +154,7 @@ class _PortalSectionState extends State<PortalSection> {
   static const memberFields = [
     EditField('Full name', 'fullname', required: true), EditField('Category', 'category', required: true),
     EditField('Ministry', 'ministry'), EditField('Contact', 'contact'), EditField('Email', 'email'),
-    EditField('Status (Active, Inactive, Archived)', 'status', required: true),
+    EditField('Status (Active, Archived)', 'status', required: true),
   ];
 
   Widget _members(Map<String, dynamic> data) {
@@ -168,7 +168,7 @@ class _PortalSectionState extends State<PortalSection> {
         }
       }, icon: const Icon(Icons.download_outlined)), IconButton(tooltip: 'Add member', onPressed: () => _edit('members', null, memberFields), icon: const Icon(Icons.person_add_alt))])),
       _search('Search name, category, or QR code'),
-      _choice(['', 'Active', 'Inactive', 'Archived'], {'': 'All', 'Active': 'Active', 'Inactive': 'Inactive', 'Archived': 'Archived'}),
+      _choice(['', 'Active', 'Archived'], {'': 'All', 'Active': 'Active', 'Archived': 'Archived'}),
       if (rows.isEmpty) _empty('No matching members.'),
       ...rows.map((m) => Card(child: ExpansionTile(leading: const Icon(Icons.person_outline), title: Text(_value(m['fullname'])), subtitle: Text('${m['category']} · ${m['status']}'), childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12), children: [
         _detail('Ministry', m['ministry']), _detail('Contact', m['contact']), _detail('Email', m['email']), _detail('QR token', m['qr_token']),

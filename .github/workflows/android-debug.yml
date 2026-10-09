@@ -5,10 +5,39 @@ on:
     branches: [main]
     paths:
       - 'mobile_app/**'
+      - 'api/**'
+      - 'functions/**'
+      - 'tests/mobile_portal_integration_test.php'
       - '.github/workflows/android-debug.yml'
   workflow_dispatch:
 
 jobs:
+  api:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci-only-password
+          MYSQL_DATABASE: afb_mobile_ci
+        ports: ['3306:3306']
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      DB_NAME: afb_mobile_ci
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v6
+      - name: Prepare isolated API environment
+        run: |
+          printf '%s\n' 'DB_HOST=127.0.0.1' 'DB_NAME=afb_mobile_ci' 'DB_USER=root' 'DB_PASSWORD=ci-only-password' 'JWT_SECRET=ci-only-mobile-test-secret-at-least-32-characters' > .env
+          COMPOSER=composer.mobile.json composer install --no-dev --prefer-dist --no-interaction
+          php tests/mobile_portal_integration_test.php seed
+          php -S 127.0.0.1:8099 > /tmp/afb-ci-php.log 2>&1 &
+      - name: Test API authorization reports and church isolation
+        run: php tests/mobile_portal_integration_test.php
+      - name: PHP error log
+        if: failure()
+        run: cat /tmp/afb-ci-php.log
   build:
     runs-on: ubuntu-latest
     steps:
