@@ -42,7 +42,7 @@ function syncAttendanceToSheets($eventId, $attendeeId, $status, $method) {
         }
         
         // Get event details
-        $stmt = $pdo->prepare("SELECT e.event_name, e.event_date, e.event_time, e.type, e.location 
+        $stmt = $pdo->prepare("SELECT e.event_name, e.start_date AS event_date, e.event_time, e.type, e.location
                               FROM events e 
                               WHERE e.id = ? LIMIT 1");
         $stmt->execute([$eventId]);
